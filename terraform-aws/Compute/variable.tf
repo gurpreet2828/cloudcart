@@ -13,6 +13,18 @@ variable "worker_count" {
     type        = number
     default     = 2 # Default number of worker nodes
 }
+
+variable "master_disk_size" {
+    description = "Size of the disk for the master node in GB"
+    type        = number
+    default     = 100 # Default disk size for the master node, can be overridden
+}
+
+variable "worker_disk_size" {
+    description = "Size of the disk for worker nodes in GB"
+    type        = number
+    default     = 100 # Default disk size for worker nodes, can be overridden
+}
 variable "aws_region" {
     description = "AWS region where the resources will be created"
     type        = string

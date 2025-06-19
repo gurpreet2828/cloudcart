@@ -55,3 +55,4 @@ resource "aws_s3_bucket_public_access_block" "k8s_bucket_public_access_block" {
   restrict_public_buckets = true
 
     }
+

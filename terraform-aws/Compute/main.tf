@@ -7,7 +7,7 @@ provider "aws" {
   region = var.aws_region # Use the AWS region from a variable
 }
 variable "Ubuntu_ami" {
-  default = "ami-020cba7c55df1f615" # Default Ubuntu AMI ID, can be overridden
+  default     = "ami-020cba7c55df1f615" # Default Ubuntu AMI ID, can be overridden
   description = "The Ubuntu AMI ID to use for the EC2 instances."
   type        = string
 
@@ -25,32 +25,54 @@ resource "aws_key_pair" "aws_key" { #
 
 # Create the master node for the Kubernetes cluster
 resource "aws_instance" "k8s-master" {
-  ami           = var.Ubuntu_ami # Use the Ubuntu AMI from SSM Parameter Store
-  instance_type = var.master_instance_type                # Use the instance type from a variable
+  ami                         = var.Ubuntu_ami                        # Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.master_instance_type              # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name         # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]                  # Use the security group ID from a variable
+  associate_public_ip_address = true                                  # Associate a public IP address
+  subnet_id                   = var.public_subnet_one                 # Use the subnet ID from a variable
+  user_data                   = file("terraform-aws/scripts/install-k8s-master.sh") # User data script to install kubernetes the master node
+
   tags = {
     Name = "k8s-master"
   }
-  key_name                    = aws_key_pair.aws_key.key_name # Use the key pair created above
-  vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
-  associate_public_ip_address = true                          # Associate a public IP address
-  subnet_id                   = var.public_subnet_one         # Use the subnet ID from a variable
+
+  root_block_device {
+    volume_size           = var.master_disk_size # Size of the root volume in GB, defined in a variable
+    volume_type           = "gp2"                # Use General Purpose SSD for the root volume
+    delete_on_termination = true                 # Delete the volume when the instance is terminated
+  }
+
 
 }
+
+
 
 # Create the worker nodes for the Kubernetes cluster
 resource "aws_instance" "k8s-worker" {
-  count         = var.worker_count                        # Number of worker nodes to create
-  ami           = var.Ubuntu_ami #Use the Ubuntu AMI from SSM Parameter Store
-  instance_type = var.worker_instance_type                # Use the instance type from a variable
-  tags = {
-    Name = "k8s-worker-${count.index+1}" # Unique name for each worker node
-  }
-  key_name                    = aws_key_pair.aws_key.key_name      # Use the key pair created above
-  vpc_security_group_ids      = [var.security_group]               # Use the security group ID from a variable
-  associate_public_ip_address = true                               # Associate a public IP address
+  count         = var.worker_count         # Number of worker nodes to create
+  ami           = var.Ubuntu_ami           #Use the Ubuntu AMI from SSM Parameter Store
+  instance_type = var.worker_instance_type # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name                                      # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]                                               # Use the security group ID from a variable
+  associate_public_ip_address = true                                                               # Associate a public IP address
   subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)] # Use the subnet ID from a variable, assuming multiple subnets for workers
+  user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
+
+  tags = {
+    Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
+  }
+  root_block_device {
+    volume_size           = var.worker_disk_size # Size of the root volume in GB, defined in a variable
+    volume_type           = "gp2"                # Use General Purpose SSD for the root volume
+    delete_on_termination = true                 # Delete the volume when the instance is terminated
+  }
+
+  
 
 }
+
+
 
 # Allocate Elastic IPs for the master node 
 resource "aws_eip" "k8s_master_eip" {
@@ -64,9 +86,9 @@ resource "aws_eip" "k8s_master_eip" {
 # Allocate Elastic IPs for each worker node
 resource "aws_eip" "k8s_worker_eip" {
   count    = var.worker_count # Allocate Elastic IPs for each worker node
-  instance = aws_instance.k8s-worker[count.index].id 
+  instance = aws_instance.k8s-worker[count.index].id
 
   tags = {
-    Name = "k8s-worker-eip-${count.index+1}" # Unique name for each worker node's EIP
+    Name = "k8s-worker-eip-${count.index + 1}" # Unique name for each worker node's EIP
   }
 }

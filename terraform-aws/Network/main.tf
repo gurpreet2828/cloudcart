@@ -99,3 +99,4 @@ resource "aws_security_group" "k8s_sg" {
     Name = "k8s-security-group"
   }
 }
+
