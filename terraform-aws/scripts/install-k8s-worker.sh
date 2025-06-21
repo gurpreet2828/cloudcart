@@ -22,15 +22,23 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 sysctl --system
 
-# Install containerd
-apt install -y containerd
-mkdir -p /etc/containerd
-containerd config default | tee /etc/containerd/config.toml
+# Add Docker repository
+# Use the architecture from dpkg and the Ubuntu release codename
+# Note: The `lsb_release -cs` command retrieves the codename of the Ubuntu release (e.g., "jammy" for 22.04)
 
-# Enable SystemdCgroup
-sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-systemctl restart containerd
-systemctl enable containerd
+mkdir -p /etc/apt/keyrings # Create directory for Docker GPG key
+# Download Docker GPG key and convert to keyring format
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+apt update                                           # Update package index
+apt install -y docker-ce docker-ce-cli containerd.io # Install Docker packages
+
+# Enable and start Docker
+systemctl enable docker
+systemctl start docker
 
 # Add Kubernetes repo
 mkdir -p /etc/apt/keyrings
@@ -43,8 +51,9 @@ apt install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 systemctl enable kubelet
 
-# --- Worker Join Step Placeholder ---
-# This line will be replaced by Terraform with the actual `kubeadm join` command
-# Example (DO NOT hardcode this here):
-# kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash> --ignore-preflight-errors=all
+echo "Kubernetes worker node setup complete."
+echo "Please run the kubeadm join command provided by your Kubernetes master node to join this worker node to the cluster."
+echo "For example:"
+echo "kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash> --ignore-preflight-errors=all"
+# Note: The user should replace <master-ip>, <token>, and <hash> with the actual values from their Kubernetes master node.
 
