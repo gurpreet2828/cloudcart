@@ -41,7 +41,7 @@ sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.to
 
 systemctl restart containerd
 systemctl enable containerd
-
+systemctl start containerd
 echo "containerd installed and started."
 
 # Add Kubernetes repo
@@ -54,7 +54,7 @@ apt update
 apt install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 systemctl enable kubelet
-
+systemctl start kubelet
 echo "Kubernetes worker node setup complete."
 echo "Please run the kubeadm join command provided by your Kubernetes master node to join this worker node to the cluster."
 echo "For example:"

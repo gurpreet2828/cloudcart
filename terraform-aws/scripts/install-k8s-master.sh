@@ -1,16 +1,15 @@
 #!/bin/bash
 
-set -e # Exit on error
+set -e                                 # Exit on error
 exec >>/var/log/install-k8s-master.log # Redirect stdout to a log file
-exec 2>&1 # Redirect stderr to stdout
+exec 2>&1                              # Redirect stderr to stdout
 
 # Check if the script is run as root, If not, re-run with sudo
-
 if [ "$EUID" -ne 0 ]; then # Check if the script is run as root
   echo "If you are not logged in as root, please run the script with sudo."
   exec sudo bash "$0" "$@" # Re-run the script with sudo
 fi
-echo "Running as root, proceeding with Kubernetes Control Plane setup on Ubuntu 24.04"
+echo "Running as root. Starting Kubernetes Control Plane setup on Ubuntu 24.04.."
 
 # Update and install dependencies
 apt update && apt upgrade -y
@@ -27,36 +26,14 @@ modprobe overlay
 modprobe br_netfilter
 echo "Kernel modules loaded."
 
-
 # Set up sysctl parameters
 cat <<EOF | tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
-sysctl --system
+sysctl --system # Reload sysctl settings
 echo "Sysctl parameters set."
-
-
-# Install Docker
-#mkdir -p /etc/apt/keyrings # Create directory for Docker GPG key
-# Download Docker GPG key and convert to keyring format
-#curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-#echo "Docker GPG key added."
-# Add Docker repository
-# Use the architecture from dpkg and the Ubuntu release codename
-# Note: The `lsb_release -cs` command retrieves the codename of the Ubuntu release (e.g., "jammy" for 22.04)
-#echo \
- # "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  #$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
-
-#apt update                                           # Update package index
-#apt install -y docker-ce docker-ce-cli containerd.io # Install Docker packages
-#echo "Docker installation completed."
-
-# Enable and start Docker
-#systemctl enable docker
-#systemctl start docker
 
 # Install containerd from official repo
 mkdir -p /etc/apt/keyrings
@@ -77,7 +54,7 @@ sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.to
 
 systemctl restart containerd
 systemctl enable containerd
-
+systemctl start containerd
 echo "containerd installed and started."
 
 # Add Kubernetes repo
