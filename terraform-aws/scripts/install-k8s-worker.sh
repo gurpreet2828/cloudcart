@@ -22,23 +22,27 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 sysctl --system
 
-# Add Docker repository
-# Use the architecture from dpkg and the Ubuntu release codename
-# Note: The `lsb_release -cs` command retrieves the codename of the Ubuntu release (e.g., "jammy" for 22.04)
-
-mkdir -p /etc/apt/keyrings # Create directory for Docker GPG key
-# Download Docker GPG key and convert to keyring format
+# Install containerd from official repo
+mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
 
-apt update                                           # Update package index
-apt install -y docker-ce docker-ce-cli containerd.io # Install Docker packages
+apt update
+apt install -y containerd.io
 
-# Enable and start Docker
-systemctl enable docker
-systemctl start docker
+# Configure containerd and start service
+mkdir -p /etc/containerd
+containerd config default | tee /etc/containerd/config.toml
+
+# Optional: make sure Systemd cgroup driver is enabled for containerd (recommended by Kubernetes)
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+
+systemctl restart containerd
+systemctl enable containerd
+
+echo "containerd installed and started."
 
 # Add Kubernetes repo
 mkdir -p /etc/apt/keyrings
@@ -56,4 +60,3 @@ echo "Please run the kubeadm join command provided by your Kubernetes master nod
 echo "For example:"
 echo "kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash> --ignore-preflight-errors=all"
 # Note: The user should replace <master-ip>, <token>, and <hash> with the actual values from their Kubernetes master node.
-
