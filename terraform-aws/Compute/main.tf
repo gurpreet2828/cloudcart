@@ -57,16 +57,15 @@ resource "aws_eip" "k8s_master_eip" {
 
 resource "null_resource" "fetch_join_command" {
   depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
+  connection {
 
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
+    user        = "ubuntu"                         # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+  }
   # Provisioner to fetch the join command from the master node 
   provisioner "remote-exec" {
-    connection {
-
-      type        = "ssh"
-      host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
-      user        = "ubuntu"                         # Use the default user for Ubuntu instances
-      private_key = file(var.ssh_key_private)        # Path to your private SSH key file
-    }
     # Fetch the join command from the master node and save it to a file
     inline = [
       # Wait until admin.conf exists
@@ -89,11 +88,14 @@ resource "null_resource" "fetch_join_command" {
     ]
   }
 
-  # Copy the join command file from the master node to the local machine
+  # Ensure the join command file is readable on the local machine
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh"
-
+        command = <<EOT
+    chmod -R u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh &&
+    scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+    EOT
   }
+  
 }
 
 # Create the worker nodes for the Kubernetes cluster
@@ -138,27 +140,27 @@ resource "null_resource" "fetch_worker_join_command" {
     user        = "ubuntu"                                      # Use the default user for Ubuntu instances
     private_key = file(var.ssh_key_private)                     # Path to your private SSH key file
   }
-#create a directory for scripts if it doesn't exist
+  #create a directory for scripts if it doesn't exist
   provisioner "remote-exec" {
     inline = [
       "echo 'Creating directory for scripts on worker node...'",
       "sudo mkdir -p /home/ubuntu/cloudcart/scripts/", # Create a directory for scripts if it doesn't exist
       "echo 'Directory created successfully!'",
-      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/", # Ensure the directory is writable
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/",        # Ensure the directory is writable
       "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/" # Change ownership to the ubuntu user
     ]
   }
   # Provisioner to execute the join command on each worker node
   provisioner "file" {
     source      = "/home/administrator/cloudcart/terraform-aws/scripts/join_command.sh" # Path to the join command file                                                        # Create the directory if it doesn't exist
-    destination = "/home/ubuntu/cloudcart/scripts/join_command.sh"  # Destination path on the worker node
+    destination = "/home/ubuntu/cloudcart/scripts/join_command.sh"                      # Destination path on the worker node
   }
   provisioner "remote-exec" {
     inline = [
       "echo 'Executing join command on worker node...'",
       #"sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",         # make the join command executable
       #"sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh", # Change ownership to the ubuntu user
-      "sudo sh /home/ubuntu/cloudcart/scripts/join_command.sh"                   # Execute the join command to join the worker node to the cluster
+      "sudo sh /home/ubuntu/cloudcart/scripts/join_command.sh" # Execute the join command to join the worker node to the cluster
     ]
   }
 }
