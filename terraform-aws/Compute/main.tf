@@ -2,7 +2,7 @@
 # It uses variables for configuration, creates EC2 instances, and allocates Elastic IPs for each node.
 ## The configuration is modular, allowing for easy adjustments and scalability.
 
-#
+
 provider "aws" {
   region = var.aws_region # Use the AWS region from a variable
 }
@@ -25,52 +25,29 @@ resource "aws_key_pair" "aws_key" { #
 
 # Create the master node for the Kubernetes cluster
 resource "aws_instance" "k8s-master" {
-  ami                         = var.Ubuntu_ami                        # Use the Ubuntu AMI from SSM Parameter Store
-  instance_type               = var.master_instance_type              # Use the instance type from a variable
-  key_name                    = aws_key_pair.aws_key.key_name         # Use the key pair created above
-  vpc_security_group_ids      = [var.security_group]                  # Use the security group ID from a variable
-  associate_public_ip_address = true                                  # Associate a public IP address
-  subnet_id                   = var.public_subnet_one                 # Use the subnet ID from a variable
-  user_data                   = file("terraform-aws/scripts/install-k8s-master.sh") # User data script to install kubernetes the master node
-
+  ami                         = var.Ubuntu_ami                # Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.master_instance_type      # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
+  associate_public_ip_address = true                          # Associate a public IP address
+  subnet_id                   = var.public_subnet_one         # Use the subnet ID from a variable
+  user_data                   = file("/home/administrator/cloudcart/terraform-aws/scripts/install-k8s-master.sh")
   tags = {
     Name = "k8s-master"
   }
 
+  #
   root_block_device {
     volume_size           = var.master_disk_size # Size of the root volume in GB, defined in a variable
-    volume_type           = "gp2"                # Use General Purpose SSD for the root volume
+    volume_type           = "gp3"                # Use General Purpose SSD for the root volume
     delete_on_termination = true                 # Delete the volume when the instance is terminated
   }
 
-
 }
 
+# Fetch the join command from the master node and save it to a file
 
 
-# Create the worker nodes for the Kubernetes cluster
-resource "aws_instance" "k8s-worker" {
-  count         = var.worker_count         # Number of worker nodes to create
-  ami           = var.Ubuntu_ami           #Use the Ubuntu AMI from SSM Parameter Store
-  instance_type = var.worker_instance_type # Use the instance type from a variable
-  key_name                    = aws_key_pair.aws_key.key_name                                      # Use the key pair created above
-  vpc_security_group_ids      = [var.security_group]                                               # Use the security group ID from a variable
-  associate_public_ip_address = true                                                               # Associate a public IP address
-  subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)] # Use the subnet ID from a variable, assuming multiple subnets for workers
-  user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
-
-  tags = {
-    Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
-  }
-  root_block_device {
-    volume_size           = var.worker_disk_size # Size of the root volume in GB, defined in a variable
-    volume_type           = "gp2"                # Use General Purpose SSD for the root volume
-    delete_on_termination = true                 # Delete the volume when the instance is terminated
-  }
-
-  
-
-}
 
 
 
@@ -83,6 +60,66 @@ resource "aws_eip" "k8s_master_eip" {
   }
 }
 
+resource "null_resource" "fetch_join_command" {
+  depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
+
+  provisioner "remote-exec" {
+    connection {
+      type        = "ssh"
+      host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
+      user        = "ubuntu"                         # Use the default user for Ubuntu instances
+      private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+    }
+    # Fetch the join command from the master node and save it to a file
+    inline = [
+      # Wait until admin.conf exists
+      "while [ ! -f /etc/kubernetes/admin.conf ]; do echo 'Waiting for kubeadm init...'; sleep 10; done",
+      # Wait until kubeadm command works
+      "until sudo kubeadm token list >/dev/null 2>&1; do echo 'Waiting for kubeadm to be ready...'; sleep 5; done",
+      "echo 'Fetching join command from the master node...'",
+      # Create the join command and save it to a file
+      "sudo kubeadm token create --print-join-command | sed 's/^/sudo /; s/$/ --ignore-preflight-errors=all/' | sudo tee /home/ubuntu/join_command.txt > /dev/null",
+      # Ensure the join command file is readable
+      "sudo chmod 777 /home/ubuntu/join_command.txt",
+      # Change ownership to the ubuntu user
+      "sudo chown ubuntu:ubuntu /home/ubuntu/join_command.txt",
+      "echo 'Join command saved to /home/ubuntu/join_command.txt'",
+      "ls -lt /home/ubuntu/", # List the file to confirm it exists
+      # Display the contents of the join command file
+      "cat /home/ubuntu/join_command.txt",
+      # Wait for the join command file to be created
+      "while [ ! -f /home/ubuntu/join_command.txt ]; do echo 'Waiting for join_command.txt file...'; sleep 5; done"
+    ]
+  }
+
+  # Copy the join command file from the master node to the local machine
+  provisioner "local-exec" {
+    command = "scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/join_command.txt /home/administrator/cloudcart/terraform-aws/scripts/join_command.txt"
+   
+  }
+}
+
+# Create the worker nodes for the Kubernetes cluster
+resource "aws_instance" "k8s-worker" {                                                                            # Ensure the join command is fetched before creating worker nodes
+  count                       = var.worker_count                                                                  # Number of worker nodes to create
+  ami                         = var.Ubuntu_ami                                                                    #Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.worker_instance_type                                                          # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name                                                     # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]                                                              # Use the security group ID from a variable
+  associate_public_ip_address = true                                                                              # Associate a public IP address
+  subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]                # Use the subnet ID from a variable, assuming multiple subnets for workers
+  user_data                   = file("/home/administrator/cloudcart/terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
+
+  tags = {
+    Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
+  }
+  root_block_device {
+    volume_size           = var.worker_disk_size # Size of the root volume in GB, defined in a variable
+    volume_type           = "gp3"                # Use General Purpose SSD for the root volume
+    delete_on_termination = true                 # Delete the volume when the instance is terminated
+  }
+
+}
 # Allocate Elastic IPs for each worker node
 resource "aws_eip" "k8s_worker_eip" {
   count    = var.worker_count # Allocate Elastic IPs for each worker node
