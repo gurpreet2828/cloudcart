@@ -45,11 +45,6 @@ resource "aws_instance" "k8s-master" {
 
 }
 
-# Fetch the join command from the master node and save it to a file
-
-
-
-
 
 # Allocate Elastic IPs for the master node 
 resource "aws_eip" "k8s_master_eip" {
@@ -63,13 +58,15 @@ resource "aws_eip" "k8s_master_eip" {
 resource "null_resource" "fetch_join_command" {
   depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
 
+  # Provisioner to fetch the join command from the master node 
   provisioner "remote-exec" {
-    connection {
-      type        = "ssh"
-      host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
-      user        = "ubuntu"                         # Use the default user for Ubuntu instances
-      private_key = file(var.ssh_key_private)        # Path to your private SSH key file
-    }
+  connection {
+
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
+    user        = "ubuntu"                         # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+  }
     # Fetch the join command from the master node and save it to a file
     inline = [
       # Wait until admin.conf exists
@@ -78,23 +75,22 @@ resource "null_resource" "fetch_join_command" {
       "until sudo kubeadm token list >/dev/null 2>&1; do echo 'Waiting for kubeadm to be ready...'; sleep 5; done",
       "echo 'Fetching join command from the master node...'",
       # Create the join command and save it to a file
-      "sudo kubeadm token create --print-join-command | sed 's/^/sudo /; s/$/ --ignore-preflight-errors=all/' | sudo tee /home/ubuntu/join_command.txt > /dev/null",
+      "sudo kubeadm token create --print-join-command | sed 's/^/sudo /; s/$/ --ignore-preflight-errors=all/' | sudo tee /home/ubuntu/join_command.sh > /dev/null",
       # Ensure the join command file is readable
-      "sudo chmod 777 /home/ubuntu/join_command.txt",
+      "sudo chmod u+rxw /home/ubuntu/join_command.sh",
       # Change ownership to the ubuntu user
-      "sudo chown ubuntu:ubuntu /home/ubuntu/join_command.txt",
-      "echo 'Join command saved to /home/ubuntu/join_command.txt'",
+      "sudo chown ubuntu:ubuntu /home/ubuntu/join_command.sh",
+      "echo 'Join command saved to /home/ubuntu/join_command.sh'",
       "ls -lt /home/ubuntu/", # List the file to confirm it exists
       # Display the contents of the join command file
-      "cat /home/ubuntu/join_command.txt",
-      # Wait for the join command file to be created
-      "while [ ! -f /home/ubuntu/join_command.txt ]; do echo 'Waiting for join_command.txt file...'; sleep 5; done"
+      "cat /home/ubuntu/join_command.sh",
+      "echo 'Join command fetched successfully!'"
     ]
   }
 
   # Copy the join command file from the master node to the local machine
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/join_command.txt /home/administrator/cloudcart/terraform-aws/scripts/join_command.txt"
+    command = "scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh"
    
   }
 }
@@ -127,5 +123,32 @@ resource "aws_eip" "k8s_worker_eip" {
 
   tags = {
     Name = "k8s-worker-eip-${count.index + 1}" # Unique name for each worker node's EIP
+  }
+}
+
+#push the join command to each worker node
+resource "null_resource" "fetch_worker_join_command" {
+  depends_on = [null_resource.fetch_join_command] # Ensure the join command is fetched before executing this resource
+  count = var.worker_count # Ensure the join command is fetched for each worker node
+
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_worker_eip[count.index].public_ip # Connect to each worker node's elastic IP
+    user        = "ubuntu"                                      # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)                     # Path to your private SSH key file
+  }
+  
+  # Provisioner to execute the join command on each worker node
+  provisioner "file" {
+    source      = "/home/administrator/cloudcart/terraform-aws/scripts/join_command.sh" # Path to the join command file
+    destination = "/home/ubuntu/join_command.sh" # Destination path on the worker node
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Executing join command on worker node...'",
+      "sudo chmod u+rxw /home/ubuntu/join_command.sh", # make the join command executable
+      "sudo chown ubuntu:ubuntu /home/ubuntu/join_command.sh", # Change ownership to the ubuntu user
+      "sudo sh /home/ubuntu/join_command.sh"            # Execute the join command to join the worker node to the cluster
+    ]
   }
 }
