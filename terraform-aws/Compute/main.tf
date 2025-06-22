@@ -55,6 +55,7 @@ resource "aws_eip" "k8s_master_eip" {
   }
 }
 
+# Fetch the join command from the master node and save it to a file
 resource "null_resource" "fetch_join_command" {
   depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
   connection {
@@ -64,11 +65,11 @@ resource "null_resource" "fetch_join_command" {
     user        = "ubuntu"                         # Use the default user for Ubuntu instances
     private_key = file(var.ssh_key_private)        # Path to your private SSH key file
   }
+
   # Provisioner to fetch the join command from the master node 
   provisioner "remote-exec" {
-    # Fetch the join command from the master node and save it to a file
     inline = [
-      # Wait until admin.conf exists
+      # Wait until kubeadm init has completed
       "while [ ! -f /etc/kubernetes/admin.conf ]; do echo 'Waiting for kubeadm init...'; sleep 10; done",
       # Wait until kubeadm command works
       "until sudo kubeadm token list >/dev/null 2>&1; do echo 'Waiting for kubeadm to be ready...'; sleep 5; done",
@@ -90,12 +91,12 @@ resource "null_resource" "fetch_join_command" {
 
   # Ensure the join command file is readable on the local machine
   provisioner "local-exec" {
-        command = <<EOT
+    command = <<EOT
     chmod -R u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh &&
     scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
     EOT
   }
-  
+
 }
 
 # Create the worker nodes for the Kubernetes cluster
@@ -164,3 +165,43 @@ resource "null_resource" "fetch_worker_join_command" {
     ]
   }
 }
+
+#-------------------------------------------------------------------------------------------------------------
+# This Terraform configuration installs Helm and monitoring tools on the master node of the Kubernetes cluster.
+#--------------------------------------------------------------------------------------------------------------
+resource "null_resource" "install_helm" {
+  depends_on = [aws_instance.k8s-master] # Ensure the master node is created before installing Helm
+
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
+    user        = "ubuntu"                         # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+# Install Helm on the master node
+      "echo 'Installing Helm on the master node...'",
+      "set -e", # Exit on error,
+      "sh /home/administrator/cloudcart/terraform-aws/scripts/install-helm.sh", # Run the script to install Helm
+
+      "echo 'Helm installed successfully!'",
+
+
+# install prometheus on the master node
+    
+      "echo 'Installing monitoring tools on the master node...'",
+      "set -e", # Exit on error
+      "chmod +x /home/administrator/cloudcart/terraform-aws/scripts/install-prometheus.sh", # Make the script executable
+      "sudo chown ubuntu:ubuntu /home/administrator/cloudcart/terraform-aws/scripts/install-prometheus.sh", # Change ownership to the ubuntu user
+      "sh /home/administrator/cloudcart/terraform-aws/scripts/install-prometheus.sh", # Run the script to install monitoring tools
+      "echo 'Monitoring tools installed successfully!'"
+    ]
+
+  
+  }
+
+
+}
+
