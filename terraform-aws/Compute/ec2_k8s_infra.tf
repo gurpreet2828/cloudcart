@@ -1,0 +1,239 @@
+# This Terraform configuration file sets up an AWS environment for a Kubernetes cluster with a master node and multiple worker nodes.
+# It uses variables for configuration, creates EC2 instances, and allocates Elastic IPs for each node.
+## The configuration is modular, allowing for easy adjustments and scalability.
+
+
+provider "aws" {
+  region = var.aws_region # Use the AWS region from a variable
+}
+
+#create a key pair for SSH access to the instances
+resource "aws_key_pair" "aws_key" { #
+  key_name   = "k8s"
+  public_key = file(var.ssh_key_public) # Path to your public SSH key file
+}
+
+# This Terraform configuration sets up the compute resources for a Kubernetes cluster on AWS.
+# It creates a master node and multiple worker nodes, each with an Elastic IP for external access.
+# Ensure you have the necessary variables defined in a separate variables.tf file.
+
+# Create the master node for the Kubernetes cluster
+resource "aws_instance" "k8s-master" {
+  ami                         = var.ubuntu_ami                # Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.master_instance_type      # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
+  associate_public_ip_address = false                         # Associate a public IP address
+  subnet_id                   = var.public_subnet_one         # Use the subnet ID from a variable
+  # This script installs necessary packages and configures the Kubernetes master node
+  user_data = file("/home/administrator/cloudcart/terraform-aws/scripts/install-k8s-master.sh")
+  tags = {
+    Name = "k8s-master"
+  }
+  root_block_device {
+    volume_size           = var.master_disk_size # Size of the root volume in GB, defined in a variable
+    volume_type           = "gp3"                # Use General Purpose SSD for the root volume
+    delete_on_termination = true                 # Delete the volume when the instance is terminated
+  }
+}
+
+resource "aws_eip" "k8s_master_eip" {
+  instance = aws_instance.k8s-master.id
+
+  tags = {
+    Name = "k8s-master-eip"
+  }
+}
+
+
+# Fetch the join command from the master node and save it to a file
+resource "null_resource" "fetch_join_command" {
+  depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
+
+
+  connection {
+
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
+    user        = "ubuntu"                         # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+  }
+
+  # Provisioner to fetch the join command from the master node 
+  provisioner "remote-exec" {
+    inline = [
+      # Wait until kubeadm init has completed
+      "while [ ! -f /etc/kubernetes/admin.conf ]; do echo 'Waiting for kubeadm init...'; sleep 10; done",
+      # Wait until kubeadm command works
+      "until sudo kubeadm token list >/dev/null 2>&1; do echo 'Waiting for kubeadm to be ready...'; sleep 5; done",
+      "kubectl version",   # Check the Kubernetes version to confirm kubeadm is ready
+      "kubeadm version",   # Check the kubeadm version to confirm it's working
+      "kubelet --version", # Display cluster information to confirm the master node is set up
+      "echo 'Kubernetes master node is ready! Fetching join command...'",
+      "sudo mkdir -p /home/ubuntu/cloudcart/scripts/", # Create a directory for scripts if it doesn't exist
+      # Create the join command and save it to a file
+      "sudo kubeadm token create --print-join-command | sed 's/^/sudo /; s/$/ --ignore-preflight-errors=all/' | sudo tee /home/ubuntu/cloudcart/scripts/join_command.sh > /dev/null",
+      # Ensure the join command file is readable
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",
+      # Change ownership to the ubuntu user
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh",
+      "echo 'Join command saved to /home/ubuntu/cloudcart/scripts/join_command.sh'",
+      "ls -lt /home/ubuntu/cloudcart/scripts/join_command.sh", # List the file to confirm it exists
+      # Display the contents of the join command file
+      "cat /home/ubuntu/cloudcart/scripts/join_command.sh",
+      "echo 'Join command fetched successfully!'"
+    ]
+  }
+  #copy the join command file to the local machine
+  provisioner "local-exec" {
+    command = <<EOT
+  echo 'Copying join command to local machine...'
+  scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+  echo 'Join command copied successfully!'
+  EOT
+  }
+}
+#-------------------------------------------
+# This Terraform configuration installs Helm
+#-------------------------------------------
+resource "null_resource" "install_helm" {
+
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
+    user        = "ubuntu"                         # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+  }
+
+  #Create a directory for scripts if it doesn't exist
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Creating directory for scripts on master node...'",
+      "sudo mkdir -p /home/ubuntu/cloudcart/scripts",                # Create a directory for scripts if it doesn't exist
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/",         # Ensure the directory is writable
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/", # Change ownership to the ubuntu user
+      "echo 'Directory created successfully!'"
+    ]
+  }
+
+  provisioner "file" {
+    source      = "/home/administrator/cloudcart/terraform-aws/scripts/install_helm.sh" # Path to the Helm installation script
+    destination = "/home/ubuntu/cloudcart/scripts/install_helm.sh"                      # Destination path on the master node
+  }
+
+  # Execute the Helm installation script on the master node
+  provisioner "remote-exec" {
+    inline = [
+      # Install Helm on the master node
+      "echo 'Installing Helm on the master node...'",
+      "set -e",                                                                  # Exit on error,
+      "sudo chmod u+rxw /home/ubuntu/cloudcart/scripts/install_helm.sh",         # Make the script executable
+      "sudo chown ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/install_helm.sh", # Change ownership to the ubuntu user
+      "sudo sh /home/ubuntu/cloudcart/scripts/install_helm.sh",                  # Run the script to install Helm
+      "helm version",                                                            # Check the Helm version to confirm installation
+      "echo 'Helm installed successfully!'",
+
+    ]
+
+  }
+}
+
+# Create the worker nodes for the Kubernetes cluster
+resource "aws_instance" "k8s-worker" {                                                                            # Ensure the join command is fetched before creating worker nodes
+  count                       = var.worker_count                                                                  # Number of worker nodes to create
+  ami                         = var.ubuntu_ami                                                                    #Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.worker_instance_type                                                          # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name                                                     # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]                                                              # Use the security group ID from a variable
+  associate_public_ip_address = true                                                                              # Associate a public IP address
+  subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]                # Use the subnet ID from a variable, assuming multiple subnets for workers
+  user_data                   = file("/home/administrator/cloudcart/terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
+
+  tags = {
+    Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
+  }
+  root_block_device {
+    volume_size           = var.worker_disk_size # Size of the root volume in GB, defined in a variable
+    volume_type           = "gp3"                # Use General Purpose SSD for the root volume
+    delete_on_termination = true                 # Delete the volume when the instance is terminated
+  }
+
+}
+# Allocate Elastic IPs for each worker node
+resource "aws_eip" "k8s_worker_eip" {
+  count    = var.worker_count # Allocate Elastic IPs for each worker node
+  instance = aws_instance.k8s-worker[count.index].id
+
+  tags = {
+    Name = "k8s-worker-eip-${count.index + 1}" # Unique name for each worker node's EIP
+  }
+}
+
+#push the join command to each worker node
+resource "null_resource" "fetch_worker_join_command" {
+  depends_on = [null_resource.fetch_join_command] # Ensure the join command is fetched from the master node to local machine before executing this resource
+  count      = var.worker_count
+
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_worker_eip[count.index].public_ip # Connect to each worker node's elastic IP
+    user        = "ubuntu"                                      # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)                     # Path to your private SSH key file
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+  echo 'Copying join command to worker node...'
+  sudo chown administrator:administrator /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+  sudo chmod u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+  EOT 
+  }
+
+  #create a directory for scripts if it doesn't exist
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Creating directory for scripts on worker node...'",
+      "sudo mkdir -p /home/ubuntu/cloudcart/scripts",                # Create a directory for scripts if it doesn't exist
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/",         # Ensure the directory is writable
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/", # Change ownership to the ubuntu user
+      "echo 'Directory created successfully!'"
+    ]
+  }
+
+  # Copy the join command file to each worker node
+  provisioner "file" {
+    source      = "/home/administrator/cloudcart/terraform-aws/scripts/join_command.sh" # Path to the join command file                                                        # Create the directory if it doesn't exist
+    destination = "/home/ubuntu/cloudcart/scripts/join_command.sh"                      # Destination path on the worker node
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Executing join command on worker node...'",
+      "set -e",
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",         # Ensure the directory is writable
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh", # Change ownership to the ubuntu user                                                # Exit on error
+      "sudo sh /home/ubuntu/cloudcart/scripts/join_command.sh",                     # Execute the join command to join the worker node to the cluster
+      "echo 'Worker node joined to the cluster successfully!'"
+    ]
+  }
+}
+
+resource "null_resource" "verify_worker_nodes" {
+  depends_on = [aws_instance.k8s-worker, aws_instance.k8s-master, null_resource.fetch_join_command, null_resource.fetch_worker_join_command] # Ensure master and worker nodes are created before verifying
+
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip # Connect to the first worker node's elastic IP
+    user        = "ubuntu"                         # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Verifying worker nodes...'",
+      "kubectl get nodes", # Check the status of the nodes in the cluster
+      "while kubectl get nodes --no-headers | grep -v 'Ready'; do echo 'Waiting for worker nodes...'; sleep 5; done",
+      "echo 'Worker nodes verified successfully!'"
+    ]
+  }
+
+}
