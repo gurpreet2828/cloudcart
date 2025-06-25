@@ -3,11 +3,11 @@
 # This script installs Helm on a Debian-based system.
 # It updates the package list, installs necessary dependencies,
 # adds the Helm GPG key, adds the Helm repository, and installs Helm.
-set -e # Exit immediately if a command exits with a non-zero status.
+set -ex # Exit immediately if a command exits with a non-zero status.
 echo 'Installing Helm on the master node...'
 #!/bin/bash
 
-set -e
+set -ex
 echo 'Installing Helm on the master node...'
 
 # Download the Helm install script
