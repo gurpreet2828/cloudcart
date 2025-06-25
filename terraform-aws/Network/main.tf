@@ -12,6 +12,8 @@ provider "aws" {
 data "aws_availability_zones" "azs" {
   state = "available"
 }
+
+#
 resource "aws_vpc" "k8s_vpc" {
   cidr_block           = "10.0.0.0/16" # Define the CIDR block for the VPC
   enable_dns_hostnames = true          # Enable DNS hostnames in the VPC
@@ -44,7 +46,7 @@ resource "aws_route_table" "k8s_public_rt" {
 
 resource "aws_route_table_association" "k8s_public_rta_one" {
   subnet_id      = aws_subnet.k8s_public_subnet_one.id # Associate the first public subnet with the route table
-  route_table_id = aws_route_table.k8s_public_rt.id # Use the route table created above
+  route_table_id = aws_route_table.k8s_public_rt.id    # Use the route table created above
 }
 
 resource "aws_route_table_association" "k8s_public_rta_two" {
