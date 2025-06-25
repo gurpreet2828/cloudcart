@@ -14,7 +14,7 @@ resource "null_resource" "install_prometheus" {
   }
 
 
-# creates the directory on master node if not exits
+  # creates the directory on master node if not exits
   provisioner "remote-exec" {
     inline = [
       "mkdir -p /home/ubuntu/cloudcart/scripts",
@@ -24,14 +24,14 @@ resource "null_resource" "install_prometheus" {
 
   }
 
-#Copy the install_prometheus.sh from local machine to master EC2 instance
+  #Copy the install_prometheus.sh from local machine to master EC2 instance
   provisioner "file" {
     source      = "/home/administrator/cloudcart/terraform-aws/scripts/install_prometheus.sh"
     destination = "/home/ubuntu/cloudcart/scripts/install_prometheus.sh"
 
   }
 
-# Install Prometheus on master EC2 node
+  # Install Prometheus on master EC2 node
   provisioner "remote-exec" {
     inline = [
       "echo 'Installing Prometheus...'",
