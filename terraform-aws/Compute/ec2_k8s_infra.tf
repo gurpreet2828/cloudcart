@@ -17,7 +17,9 @@ resource "aws_key_pair" "aws_key" { #
 # It creates a master node and multiple worker nodes, each with an Elastic IP for external access.
 # Ensure you have the necessary variables defined in a separate variables.tf file.
 
-# Create the master node for the Kubernetes cluster
+#-----------------------------------------------------------------------
+# This resource creates an EC2 instance for the Kubernetes master node.
+#----------------------------------------------------------------------
 resource "aws_instance" "k8s-master" {
   ami                         = var.ubuntu_ami                # Use the Ubuntu AMI from SSM Parameter Store
   instance_type               = var.master_instance_type      # Use the instance type from a variable
@@ -30,6 +32,8 @@ resource "aws_instance" "k8s-master" {
   tags = {
     Name = "k8s-master"
   }
+  
+  # This block defines the root volume for the master node
   root_block_device {
     volume_size           = var.master_disk_size # Size of the root volume in GB, defined in a variable
     volume_type           = "gp3"                # Use General Purpose SSD for the root volume
@@ -37,6 +41,7 @@ resource "aws_instance" "k8s-master" {
   }
 }
 
+# Allocate an Elastic IP for the Kubernetes master node
 resource "aws_eip" "k8s_master_eip" {
   instance = aws_instance.k8s-master.id
 
@@ -51,6 +56,8 @@ resource "null_resource" "fetch_join_command" {
   depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
 
 
+  # This resource fetches the join command from the master node and saves it to a file on the local machine
+  # It uses SSH to connect to the master node and execute commands to retrieve the join command
   connection {
 
     type        = "ssh"
@@ -93,52 +100,11 @@ resource "null_resource" "fetch_join_command" {
   EOT
   }
 }
-#-------------------------------------------
-# This Terraform configuration installs Helm
-#-------------------------------------------
-resource "null_resource" "install_helm" {
 
-  connection {
-    type        = "ssh"
-    host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
-    user        = "ubuntu"                         # Use the default user for Ubuntu instances
-    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
-  }
 
-  #Create a directory for scripts if it doesn't exist
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'Creating directory for scripts on master node...'",
-      "sudo mkdir -p /home/ubuntu/cloudcart/scripts",                # Create a directory for scripts if it doesn't exist
-      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/",         # Ensure the directory is writable
-      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/", # Change ownership to the ubuntu user
-      "echo 'Directory created successfully!'"
-    ]
-  }
-
-  provisioner "file" {
-    source      = "/home/administrator/cloudcart/terraform-aws/scripts/install_helm.sh" # Path to the Helm installation script
-    destination = "/home/ubuntu/cloudcart/scripts/install_helm.sh"                      # Destination path on the master node
-  }
-
-  # Execute the Helm installation script on the master node
-  provisioner "remote-exec" {
-    inline = [
-      # Install Helm on the master node
-      "echo 'Installing Helm on the master node...'",
-      "set -e",                                                                  # Exit on error,
-      "sudo chmod u+rxw /home/ubuntu/cloudcart/scripts/install_helm.sh",         # Make the script executable
-      "sudo chown ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/install_helm.sh", # Change ownership to the ubuntu user
-      "sudo sh /home/ubuntu/cloudcart/scripts/install_helm.sh",                  # Run the script to install Helm
-      "helm version",                                                            # Check the Helm version to confirm installation
-      "echo 'Helm installed successfully!'",
-
-    ]
-
-  }
-}
-
-# Create the worker nodes for the Kubernetes cluster
+#-----------------------------------------------------------------------
+# This resource creates multiple EC2 instances for the Kubernetes worker nodes.
+#-----------------------------------------------------------------------
 resource "aws_instance" "k8s-worker" {                                                                            # Ensure the join command is fetched before creating worker nodes
   count                       = var.worker_count                                                                  # Number of worker nodes to create
   ami                         = var.ubuntu_ami                                                                    #Use the Ubuntu AMI from SSM Parameter Store
@@ -152,6 +118,8 @@ resource "aws_instance" "k8s-worker" {                                          
   tags = {
     Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
   }
+
+  # This block defines the root volume for each worker node
   root_block_device {
     volume_size           = var.worker_disk_size # Size of the root volume in GB, defined in a variable
     volume_type           = "gp3"                # Use General Purpose SSD for the root volume
@@ -169,7 +137,9 @@ resource "aws_eip" "k8s_worker_eip" {
   }
 }
 
-#push the join command to each worker node
+#------------------------------------------------------------------------
+# This resource fetches the join command from local machine and copies it to each worker node
+#------------------------------------------------------------------------
 resource "null_resource" "fetch_worker_join_command" {
   depends_on = [null_resource.fetch_join_command] # Ensure the join command is fetched from the master node to local machine before executing this resource
   count      = var.worker_count
@@ -181,6 +151,8 @@ resource "null_resource" "fetch_worker_join_command" {
     private_key = file(var.ssh_key_private)                     # Path to your private SSH key file
   }
 
+
+  # This provisioner copies the join command file from the local machine to each worker node
   provisioner "local-exec" {
     command = <<EOT
   echo 'Copying join command to worker node...'
@@ -205,6 +177,8 @@ resource "null_resource" "fetch_worker_join_command" {
     source      = "/home/administrator/cloudcart/terraform-aws/scripts/join_command.sh" # Path to the join command file                                                        # Create the directory if it doesn't exist
     destination = "/home/ubuntu/cloudcart/scripts/join_command.sh"                      # Destination path on the worker node
   }
+
+  # Execute the join command on each worker node to join it to the cluster
   provisioner "remote-exec" {
     inline = [
       "echo 'Executing join command on worker node...'",
@@ -217,6 +191,8 @@ resource "null_resource" "fetch_worker_join_command" {
   }
 }
 
+
+# This resource verifies that the worker nodes have successfully joined the Kubernetes cluster.
 resource "null_resource" "verify_worker_nodes" {
   depends_on = [aws_instance.k8s-worker, aws_instance.k8s-master, null_resource.fetch_join_command, null_resource.fetch_worker_join_command] # Ensure master and worker nodes are created before verifying
 
@@ -224,14 +200,15 @@ resource "null_resource" "verify_worker_nodes" {
     type        = "ssh"
     host        = aws_eip.k8s_master_eip.public_ip # Connect to the first worker node's elastic IP
     user        = "ubuntu"                         # Use the default user for Ubuntu instances
-    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+    private_key = file(var.ssh_key_private)       # Path to your private SSH key file
   }
 
+  # This provisioner verifies that the worker nodes have successfully joined the Kubernetes cluster
   provisioner "remote-exec" {
     inline = [
       "echo 'Verifying worker nodes...'",
-      "kubectl get nodes", # Check the status of the nodes in the cluster
-      "while kubectl get nodes --no-headers | grep -v 'Ready'; do echo 'Waiting for worker nodes...'; sleep 5; done",
+      #"until kubectl get nodes --no-headers | grep -v 'Ready'; do echo 'Waiting for worker nodes...'; sleep 5; done",
+      "kubectl get nodes -o wide", # Check the status of the nodes in the cluster
       "echo 'Worker nodes verified successfully!'"
     ]
   }
