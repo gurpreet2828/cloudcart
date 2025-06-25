@@ -16,9 +16,9 @@ provider "aws" {
 # Load the code inside the Compute folder
 # This module sets up the compute resources, such as EC2 instances for Kubernetes nodes
 module "Compute" {
-  source            = "./terraform-aws/Compute" # Path to the Compute module
- 
- # Pass the necessary variables to the Compute module
+  source = "./terraform-aws/Compute" # Path to the Compute module
+
+  # Pass the necessary variables to the Compute module
   public_subnet_one = module.Network.public_subnet_one_id   # Pass the public subnet ID from the Network module
   public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
   security_group    = module.Network.security_group_id      # Pass the security group ID from the Network module   
@@ -39,3 +39,12 @@ module "Storage" {
   aws_region = var.aws_region # AWS region where the resources will be created
 }
 */
+
+module "Monitoring" {
+  source                        = "./terraform-aws/Monitoring"       # Path to the Monitoring module
+  aws_region                    = var.aws_region                     # AWS region where the monitoring tools will be installed
+  ssh_key_private               = var.ssh_key_private                # Path to the private SSH key for accessing the instances
+  k8s_master_dependency         = module.Compute.k8s_master_instance # Dependency for the Kubernetes master node
+  k8s_master_eip                = module.Compute.k8s_master_eip      # Elastic IP address of the Kubernetes master node
+  fetch_join_command_dependency = module.Compute.fetch_join_command  # Dependency for fetching the join command
+}
