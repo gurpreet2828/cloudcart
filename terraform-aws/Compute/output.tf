@@ -12,6 +12,20 @@ output "k8s_master_connection_info" {
   }
 }
 
+output "k8s_master_eip" {
+  description = "Elastic IP address of the Kubernetes master node"
+  value       = aws_eip.k8s_master_eip.public_ip
+}   
+
+output "k8s_master_instance" {
+  description = "Instance ID of the Kubernetes master node"
+  value       = aws_instance.k8s-master.id
+}
+
+output "fetch_join_command" {
+  description = "Command to join worker nodes to the Kubernetes cluster"
+  value = null_resource.fetch_join_command.id
+}
 
 output "k8s_worker_connection_info" {
   description = "Connection information for the Kubernetes worker nodes"
@@ -28,4 +42,4 @@ output "k8s_worker_connection_info" {
     }
   ]
 }
-   
+
