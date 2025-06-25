@@ -32,7 +32,7 @@ resource "aws_instance" "k8s-master" {
   tags = {
     Name = "k8s-master"
   }
-  
+
   # This block defines the root volume for the master node
   root_block_device {
     volume_size           = var.master_disk_size # Size of the root volume in GB, defined in a variable
@@ -200,7 +200,7 @@ resource "null_resource" "verify_worker_nodes" {
     type        = "ssh"
     host        = aws_eip.k8s_master_eip.public_ip # Connect to the first worker node's elastic IP
     user        = "ubuntu"                         # Use the default user for Ubuntu instances
-    private_key = file(var.ssh_key_private)       # Path to your private SSH key file
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
   }
 
   # This provisioner verifies that the worker nodes have successfully joined the Kubernetes cluster
