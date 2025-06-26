@@ -5,7 +5,6 @@
 # adds the Helm GPG key, adds the Helm repository, and installs Helm.
 set -ex # Exit immediately if a command exits with a non-zero status.
 echo 'Installing Helm on the master node...'
-#!/bin/bash
 
 set -ex
 echo 'Installing Helm on the master node...'
