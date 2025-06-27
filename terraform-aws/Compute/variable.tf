@@ -4,6 +4,19 @@ variable "ubuntu_ami" {
   default     = "ami-020cba7c55df1f615" # Default AMI ID, can be overridden
 
 }
+
+variable "aws_region" {
+  description = "AWS region where the resources will be created"
+  type        = string
+  default     = "us-east-1" # Default region, can be overridden
+}
+
+variable "master_az" {
+  description = "availability zone of master node ebs volume"
+  type = string
+  default = "us-east-1a" 
+  }
+  
 variable "master_instance_type" {
   description = "EC2 instance with Ubuntu 24.04, serving as a Kubernetes node"
   type        = string
@@ -23,19 +36,23 @@ variable "worker_count" {
 variable "master_disk_size" {
   description = "Size of the disk for the master node in GB"
   type        = number
-  default     = 100 # Default disk size for the master node, can be overridden
+  default     = 30 # Default disk size for the master node, can be overridden
 }
+
+variable "master_ebs_volume_size" {
+  description = "Size of the EBS volume for the master node in GB"
+  type        = number
+  default     = 50
+
+}
+
 
 variable "worker_disk_size" {
   description = "Size of the disk for worker nodes in GB"
   type        = number
-  default     = 100 # Default disk size for worker nodes, can be overridden
+  default     = 30 # Default disk size for worker nodes, can be overridden
 }
-variable "aws_region" {
-  description = "AWS region where the resources will be created"
-  type        = string
-  default     = "us-east-1" # Default region, can be overridden
-}
+
 variable "ssh_key_public" {
   description = "Path to the public SSH key file for accessing the instances"
   type        = string
