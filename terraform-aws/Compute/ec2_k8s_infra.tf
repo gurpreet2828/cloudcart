@@ -38,7 +38,11 @@ resource "aws_instance" "k8s-master" {
     volume_size           = var.master_disk_size # Size of the root volume in GB, defined in a variable
     volume_type           = "gp3"                # Use General Purpose SSD for the root volume
     delete_on_termination = true                 # Delete the volume when the instance is terminated
+    tags = {
+      Name = "k8s-master-root-volume"
+    }
   }
+
 }
 
 # Allocate an Elastic IP for the Kubernetes master node
@@ -50,6 +54,45 @@ resource "aws_eip" "k8s_master_eip" {
   }
 }
 
+# Creating EBS volume for the master node
+resource "aws_ebs_volume" "k8s_master_ebs_volume" {
+  availability_zone = var.master_az
+  size              = var.master_ebs_volume_size
+  type              = "gp3"
+  encrypted         = true
+  tags = {
+    Name = "k8s-master-ebs-volume"
+  }
+}
+
+resource "aws_volume_attachment" "master_attach_volume" {
+  instance_id  = aws_instance.k8s-master.id
+  device_name  = "/dev/xvdf"
+  volume_id    = aws_ebs_volume.k8s_master_ebs_volume.id
+  force_detach = true
+
+
+}
+
+resource "null_resource" "mount_ebs_ec2" {
+  depends_on = [aws_volume_attachment.master_attach_volume]
+
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip
+    user        = "ubuntu"
+    private_key = file(var.ssh_key_private)
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkfs.ext4 /dev/nvme1n1",
+      "sudo mkdir -p /mnt/data",
+      "sudo mount /dev/nvme1n1 /mnt/data",
+      "echo '/dev/nvme1n1 /mnt/data ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab"
+    ]
+  }
+}
 
 # Fetch the join command from the master node and save it to a file
 resource "null_resource" "fetch_join_command" {
@@ -124,6 +167,9 @@ resource "aws_instance" "k8s-worker" {                                          
     volume_size           = var.worker_disk_size # Size of the root volume in GB, defined in a variable
     volume_type           = "gp3"                # Use General Purpose SSD for the root volume
     delete_on_termination = true                 # Delete the volume when the instance is terminated
+    tags = {
+      Name = "k8s-worker_root_volume-${count.index + 1}"
+    }
   }
 
 }
