@@ -11,5 +11,7 @@ helm repo update
 kubectl get namespace monitoring >/dev/null 2>&1 || kubectl create namespace monitoring 
 helm search repo grafana/grafana
 # Install grafana using Helm
-helm install my-grafana grafana/grafana --namespace monitoring
+helm install my-grafana grafana/grafana --namespace monitoring \
+  --set service.type=NodePort \
+  --set service.nodePort=1031
 echo "Grafana installed successfully in 'monitoring' namespace."
