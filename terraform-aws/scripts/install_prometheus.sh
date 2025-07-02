@@ -10,6 +10,9 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 # Check if the 'monitoring' namespace exists, if not, create it
 kubectl get namespace monitoring >/dev/null 2>&1 || kubectl create namespace monitoring 
-# Install Prometheus using Helm
-helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring
+# Install Prometheus using Helm and expose node port outside the K8s infra
+helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --set prometheus.service.type=NodePort \
+  --set prometheus.service.nodePort=1030
 echo "Prometheus installed successfully in 'monitoring' namespace."
