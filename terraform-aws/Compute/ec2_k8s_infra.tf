@@ -144,6 +144,23 @@ resource "null_resource" "fetch_join_command" {
   }
 }
 
+resource "null_resource" "prepare_join_script" {
+  depends_on = [null_resource.fetch_join_command]
+  provisioner "local-exec" {
+    command = <<EOT
+      echo 'Setting permissions for local join_command.sh...'
+      set -ex
+      if [ -f /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh ]; then
+        sudo chown administrator:administrator /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+        sudo chmod u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+      else
+        echo 'join_command.sh not found!'
+        exit 1
+      fi
+      echo 'Read Write permission set for join_command.sh'
+    EOT
+  }
+}
 
 #-----------------------------------------------------------------------
 # This resource creates multiple EC2 instances for the Kubernetes worker nodes.
@@ -183,11 +200,12 @@ resource "aws_eip" "k8s_worker_eip" {
   }
 }
 
+
 #------------------------------------------------------------------------
 # This resource fetches the join command from local machine and copies it to each worker node
 #------------------------------------------------------------------------
 resource "null_resource" "fetch_worker_join_command" {
-  depends_on = [null_resource.fetch_join_command] # Ensure the join command is fetched from the master node to local machine before executing this resource
+  depends_on = [null_resource.fetch_join_command, null_resource.prepare_join_script] # Ensure the join command is fetched from the master node to local machine before executing this resource
   count      = var.worker_count
 
   connection {
@@ -195,16 +213,6 @@ resource "null_resource" "fetch_worker_join_command" {
     host        = aws_eip.k8s_worker_eip[count.index].public_ip # Connect to each worker node's elastic IP
     user        = "ubuntu"                                      # Use the default user for Ubuntu instances
     private_key = file(var.ssh_key_private)                     # Path to your private SSH key file
-  }
-
-
-  # This provisioner copies the join command file from the local machine to each worker node
-  provisioner "local-exec" {
-    command = <<EOT
-  echo 'Copying join command to worker node...'
-  sudo chown administrator:administrator /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
-  sudo chmod u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
-  EOT 
   }
 
   #create a directory for scripts if it doesn't exist
@@ -228,7 +236,7 @@ resource "null_resource" "fetch_worker_join_command" {
   provisioner "remote-exec" {
     inline = [
       "echo 'Executing join command on worker node...'",
-      "set -e",
+      "set -ex",
       "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",         # Ensure the directory is writable
       "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh", # Change ownership to the ubuntu user                                                # Exit on error
       "sudo sh /home/ubuntu/cloudcart/scripts/join_command.sh",                     # Execute the join command to join the worker node to the cluster
