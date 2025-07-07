@@ -1,9 +1,10 @@
-resource "null_resource" "install_grafana" {
+resource "null_resource" "kube_state_metrics" {
   depends_on = [
     var.k8s_master_dependency,
     var.fetch_join_command_dependency,
     null_resource.install_helm,
     null_resource.install_prometheus,
+    null_resource.install_grafana,
     var.deployment_app_dependency
   ]
   connection {
@@ -55,11 +56,11 @@ resource "null_resource" "install_grafana" {
   #.............................................
   provisioner "remote-exec" {
     inline = [
-      "echo 'Creating directory for Grafana manifests...'",
+      "echo 'Creating directory for kube-state-metrics manifests...'",
       "sudo mkdir -p /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring",
       "sudo chmod -R u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring",
       "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring",
-      "echo 'Directory setup complete for grafana: /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring'"
+      "echo 'Directory setup complete for kube-state-metrics: /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring'"
     ]
 
   }
@@ -68,20 +69,20 @@ resource "null_resource" "install_grafana" {
   provisioner "local-exec" {
     command = <<EOT
    echo "copy entire prometheus yaml files from loacl to master node"
-   scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} -r /home/administrator/cloudcart/deploy-sock-shop/monitoring-app/grafana ubuntu@${var.k8s_master_eip}:/home/ubuntu/cloudcart/deploy-sock-shop/Monitoring
+   scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} -r /home/administrator/cloudcart/deploy-sock-shop/monitoring-app/kube-state-metrics ubuntu@${var.k8s_master_eip}:/home/ubuntu/cloudcart/deploy-sock-shop/Monitoring
    EOT
 
   }
 
   provisioner "remote-exec" {
     inline = [
-      "echo 'Installing Prometheus...'",
+      "echo 'Applying kube-state-metrics.....'",
       "set -ex", # Enable debug mode to print commands and their arguments as they are executed
-      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/grafana",
-      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/grafana",
-      "ls -l /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/grafana",
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/kube-state-metrics",
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/kube-state-metrics",
+      "ls -l /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/kube-state-metrics",
       "kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -",
-      "kubectl apply -f /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/grafana",
+      "kubectl apply -f /home/ubuntu/cloudcart/deploy-sock-shop/Monitoring/kube-state-metrics",
       "kubectl get pods -n monitoring",
       "echo 'Grafana installation completed.'"
     ]

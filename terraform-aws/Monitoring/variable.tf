@@ -8,7 +8,7 @@ variable "aws_region" {
 variable "ssh_key_private" {
   description = "Path to the private SSH key file for accessing the instances."
   type        = string
-  default     = "~/.ssh/docker"
+  default     = "/home/administrator/.ssh/docker"
 }
 
 variable "k8s_master_dependency" {
@@ -28,4 +28,10 @@ variable "fetch_join_command_dependency" {
   description = "Dependency for fetching the join command to ensure it is available before installing monitoring tools."
   type        = any
   default     = null
+}
+
+variable "deployment_app_dependency" {
+  description = "Dependency of deployment application to ensure application running properly and available for monitoring"
+  type = any
+  default = null
 }

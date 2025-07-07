@@ -5,6 +5,7 @@ resource "null_resource" "install_helm" {
   depends_on = [
     var.k8s_master_dependency,         # Ensure the Kubernetes master node is ready
     var.fetch_join_command_dependency, # Ensure the join command is fetched
+    var.deployment_app_dependency
   ]
   connection {
     type        = "ssh"
