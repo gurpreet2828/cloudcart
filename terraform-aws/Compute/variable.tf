@@ -56,12 +56,12 @@ variable "worker_disk_size" {
 variable "ssh_key_public" {
   description = "Path to the public SSH key file for accessing the instances"
   type        = string
-  default     = "~/.ssh/docker.pub" # Default path to the public SSH key
+  default     = "/home/administrator/.ssh/docker.pub" # Default path to the public SSH key
 }
 variable "ssh_key_private" {
   description = "Path to the private SSH key file for accessing the instances"
   type        = string
-  default     = "~/.ssh/docker" # Default path to the private SSH key
+  default     = "/home/administrator/.ssh/docker" # Default path to the private SSH key
 
 }
 variable "security_group" {
