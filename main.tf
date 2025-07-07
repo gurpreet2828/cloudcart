@@ -35,6 +35,7 @@ module "Network" {
 # This module sets up the storage resources, such as S3 buckets for Kubernetes data
 /*
 module "Storage" {
+
   source     = "./terraform-aws/Storage"
   aws_region = var.aws_region # AWS region where the resources will be created
 }
@@ -47,4 +48,14 @@ module "Monitoring" {
   k8s_master_dependency         = module.Compute.k8s_master_instance # Dependency for the Kubernetes master node
   k8s_master_eip                = module.Compute.k8s_master_eip      # Elastic IP address of the Kubernetes master node
   fetch_join_command_dependency = module.Compute.fetch_join_command  # Dependency for fetching the join command
+  deployment_app_dependency     = module.deployment.deployment_app   #dependency on sock-shop application
+}
+
+module "deployment" {
+  source                        = "./terraform-aws/deployment"
+  aws_region                    = var.aws_region
+  ssh_key_private               = var.ssh_key_private
+  k8s_master_dependency         = module.Compute.k8s_master_instance
+  k8s_master_eip                = module.Compute.k8s_master_eip
+  fetch_join_command_dependency = module.Compute.fetch_join_command
 }
