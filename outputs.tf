@@ -16,12 +16,18 @@ output "k8s_worker_connection_info" {
 
 
 output "prometheus_nodeport_url" {
-  description ="Prometheus UI exposed via NodePort on the master node"
-  value = module.Monitoring.prometheus_nodeport_url
-  
+  description = "Prometheus UI exposed via NodePort on the master node"
+  value       = module.Monitoring.prometheus_nodeport_url
+
 }
 
 output "grafana_nodeport_url" {
   description = "Grafana UI exposed via NodePort on the master node"
-  value = module.Monitoring.grafana_nodeport_url
+  value       = module.Monitoring.grafana_nodeport_url
+}
+
+output "deployment_app_nodeport_url" {
+  description = "Sock-Shop Application UI exopsed via NodePort on the master node"
+  value       = module.deployment.deployment_app_nodeport_url
+
 }
