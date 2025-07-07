@@ -13,6 +13,8 @@ kubectl get namespace monitoring >/dev/null 2>&1 || kubectl create namespace mon
 # Install Prometheus using Helm and expose node port outside the K8s infra
 helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
+  --set nameOverride=prometheus \
+  --set fullnameOverride=prometheus \
   --set prometheus.service.type=NodePort \
   --set prometheus.service.nodePort=1030
 echo "Prometheus installed successfully in 'monitoring' namespace."
