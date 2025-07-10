@@ -1,0 +1,22 @@
+storage:
+  persistentVolume:
+    enabled: true
+    storageClass: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+prometheus:
+  service:
+    type: external
+    url: "http://10.0.1.213:1030"  #public ip of master node
+
+kubecostProductConfigs:
+  prometheus:
+    address: "http://10.0.1.213:1030"  #or public ip of master node with nodeport
+  grafanaURL: "http://10.0.1.213:1031"
+grafana:
+  enabled: false     #if you want to use kubecost's grafana, set this to true
+  url: "http://10.0.1.213:1031"
+  #or private ip of master node with nodeport ex http://10.0.1.213:1031
+
