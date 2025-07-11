@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+  namespace: monitoring
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      name: prometheus
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      nodeSelector:
+        kubernetes.io/os: linux
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.26.0
+        args:
+          - '--storage.tsdb.retention=360h'
+          - '--config.file=/etc/prometheus/prometheus.yml'
+        ports:
+          - name: web
+            containerPort: 9090
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/prometheus
+          - name: alertrules-volume
+            mountPath: /etc/prometheus-rules
+          - name: prometheus-storage
+            mountPath: /prometheus
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-configmap
+        - name: alertrules-volume
+          configMap:
+            name: prometheus-alertrules
+        - name: prometheus-storage
+          persistentVolumeClaim:
+            claimName: prometheus-pvc
