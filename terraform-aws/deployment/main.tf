@@ -29,8 +29,8 @@ resource "null_resource" "deployment_app" {
 
   provisioner "remote-exec" {
     inline = [
-      "echo 'Deploying sock-shop application.....'",
       "set -ex",
+      "echo 'Deploying sock-shop application.....'",
       "sudo chown ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "sudo chmod u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "kubectl apply -f /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
