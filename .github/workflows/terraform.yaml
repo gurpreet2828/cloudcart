@@ -48,7 +48,7 @@ jobs:
 
       - name: Manual approval before apply
         if: github.event_name == 'push'
-        uses: peter-evans/manual-approval@v2
+        uses: peter-evans/manual-approval@v3
         with:
           reviewers: gurpreet2828 # Change to your GitHub username or team
 
