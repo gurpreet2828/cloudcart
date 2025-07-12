@@ -24,7 +24,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Prepare join_command.sh file
+      - name: Set Git Safe Directory (to avoid errors)
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Prepare placeholder join_command.sh file
         run: |
           mkdir -p terraform-aws/scripts
           echo '#!/bin/bash' > terraform-aws/scripts/join_command.sh
@@ -36,8 +39,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
           chmod 600 ~/.ssh/docker
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
