@@ -19,11 +19,11 @@ jobs:
         uses: actions/checkout@v3
       # This step checks out the repository code so Terraform can access the configuration files.
 
-      - name: Set up SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker #
-          chmod 600 ~/.ssh/docker
+      # - name: Set up SSH Key
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker #
+      #     chmod 600 ~/.ssh/docker
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
