@@ -13,10 +13,10 @@ variable "aws_region" {
 
 variable "master_az" {
   description = "availability zone of master node ebs volume"
-  type = string
-  default = "us-east-1a" 
-  }
-  
+  type        = string
+  default     = "us-east-1a"
+}
+
 variable "master_instance_type" {
   description = "EC2 instance with Ubuntu 24.04, serving as a Kubernetes node"
   type        = string
