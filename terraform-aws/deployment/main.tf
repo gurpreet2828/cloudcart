@@ -12,7 +12,7 @@ resource "null_resource" "deployment_app" {
   }
   provisioner "remote-exec" {
     inline = [
-      "echo 'Creating directory for application deployment on master node...'",
+      "echo '-----Creating directory for application deployment on master node-----'",
       "sudo mkdir -p /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes",               # Create a directory for application deployment if it doesn't exist
       "sudo chmod -R u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes",         # Ensure the directory is writable
       "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes", # Change ownership to the ubuntu user
