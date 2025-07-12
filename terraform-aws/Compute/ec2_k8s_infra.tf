@@ -107,8 +107,8 @@ resource "null_resource" "fetch_join_command" {
     type        = "ssh"
     host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
     user        = "ubuntu"                         # Use the default user for Ubuntu instances
-   # private_key = file(var.ssh_key_private)        # Path to your private SSH key file
-    private_key = file("/home/administrator/.ssh/docker") # Path to your private SSH key file
+    private_key = file(var.ssh_key_private)        # Path to your private SSH key file
+   # private_key = file("/home/administrator/.ssh/docker") # Path to your private SSH key file
   }
 
   # Provisioner to fetch the join command from the master node 
