@@ -46,12 +46,6 @@ jobs:
           name: tfplan
           path: tfplan
 
-      - name: Manual approval before apply
-        if: github.event_name == 'push'
-        uses: peter-evans/manual-approval@v3
-        with:
-          reviewers: gurpreet2828 # Change to your GitHub username or team
-
       - name: Terraform Apply
         if: success()
         run: terraform apply -auto-approve tfplan
