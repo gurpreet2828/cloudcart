@@ -5,18 +5,18 @@ name: Terraform CI/CD
 # - Automatically when there is a push to the main branch,
 #   but only if files with .tf extension or inside terraform folders change
 on:
-  workflow_dispatch:      # Allows manual workflow run via GitHub Actions tab
+  workflow_dispatch: # Allows manual workflow run via GitHub Actions tab
   push:
     branches:
-      - main             # Only trigger for pushes to the 'main' branch
+      - main # Only trigger for pushes to the 'main' branch
     paths:
-      - "**.tf"          # Trigger only if any Terraform (*.tf) files change
-      - "terraform/**"   # Or if any files inside the terraform folder change
+      - "**.tf" # Trigger only if any Terraform (*.tf) files change
+      - "terraform/**" # Or if any files inside the terraform folder change
       - "terraform-aws/**" # Or if files inside terraform-aws folder change
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest  # Use latest Ubuntu Linux virtual machine for the job
+    runs-on: ubuntu-latest # Use latest Ubuntu Linux virtual machine for the job
     environment: production # Environment label for deployment (optional for tracking)
 
     env:
@@ -31,7 +31,11 @@ jobs:
         uses: actions/checkout@v3
         # This step clones your GitHub repository into the runner environment,
         # so that Terraform can access your configuration files.
-
+      - name: Save SSH private key
+        run: |
+          mkdir -p terraform-aws/keys
+          echo "${{ secrets.PRIVATE_KEY_B64 }}" | base64 -d > terraform-aws/keys/docker
+          chmod 600 terraform-aws/keys/docker
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         # Installs the Terraform CLI on the runner machine,
@@ -39,10 +43,9 @@ jobs:
 
       # - name: Terraform Format Check
       #   run: terraform fmt -check -recursive
-        # Checks all Terraform files for correct formatting.
-        # If any files are not formatted properly, this step fails.
-        # Ensures consistent and clean Terraform code style.
-
+      # Checks all Terraform files for correct formatting.
+      # If any files are not formatted properly, this step fails.
+      # Ensures consistent and clean Terraform code style.
       - name: Terraform Init
         run: terraform init
         # Initializes Terraform:
@@ -76,16 +79,16 @@ jobs:
           fi
 
       - name: Upload Plan File
-        if: always()          # Always run this step, even if previous failed
+        if: always() # Always run this step, even if previous failed
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan        # Name of the artifact to upload
-          path: tfplan        # Path of the Terraform plan file to save for download
+          name: tfplan # Name of the artifact to upload
+          path: tfplan # Path of the Terraform plan file to save for download
         # Uploads the 'tfplan' file as a workflow artifact,
         # so it can be downloaded later for review or applied in another job.
 
       - name: Upload Terraform Debug Log
-        if: always()          # Always upload the debug log, even on failure
+        if: always() # Always upload the debug log, even on failure
         uses: actions/upload-artifact@v4
         with:
           name: terraform-debug-log
