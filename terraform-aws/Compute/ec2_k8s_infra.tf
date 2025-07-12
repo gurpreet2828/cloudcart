@@ -82,7 +82,8 @@ resource "null_resource" "mount_ebs_ec2" {
     type        = "ssh"
     host        = aws_eip.k8s_master_eip.public_ip
     user        = "ubuntu"
-    private_key = file(var.ssh_key_private)
+    #private_key = file(var.ssh_key_private)
+    private_key = var.ssh_key_private # Path to your private SSH key file for github actions
   }
 
   provisioner "remote-exec" {
