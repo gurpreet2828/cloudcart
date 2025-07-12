@@ -19,6 +19,8 @@ module "Compute" {
   source = "./terraform-aws/Compute" # Path to the Compute module
 
   # Pass the necessary variables to the Compute module
+  ssh_key_public = "${path.module}/../keys/docker.pub" # Path to the public SSH key file
+  ssh_key_private = var.ssh_key_private                # Path to the private SSH key for
   public_subnet_one = module.Network.public_subnet_one_id   # Pass the public subnet ID from the Network module
   public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
   security_group    = module.Network.security_group_id      # Pass the security group ID from the Network module   
