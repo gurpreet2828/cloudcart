@@ -1,7 +1,7 @@
 
 output "name" {
   value = aws_s3_bucket.k8s_bucket.id # Output the name of the S3 bucket
-  
+
 }
 
 output "bucket_arn" {
