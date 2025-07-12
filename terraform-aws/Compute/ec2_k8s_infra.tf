@@ -232,7 +232,7 @@ resource "null_resource" "fetch_worker_join_command" {
   # Copy the join command file to each worker node
   provisioner "file" {
     source      = "/home/administrator/cloudcart/terraform-aws/scripts/join_command.sh" # Path to the join command file                                                        # Create the directory if it doesn't exist
-    destination = "/home/ubuntu/cloudcart/scripts/join_command.sh"                      # Destination path on the worker node
+    destination = "${path.module}/scripts/join_command.sh"                      # Destination path on the worker node
   }
 
   # Execute the join command on each worker node to join it to the cluster
