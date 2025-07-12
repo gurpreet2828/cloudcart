@@ -165,15 +165,15 @@ resource "null_resource" "prepare_join_script" {
 #-----------------------------------------------------------------------
 # This resource creates multiple EC2 instances for the Kubernetes worker nodes.
 #-----------------------------------------------------------------------
-resource "aws_instance" "k8s-worker" {                                                                            # Ensure the join command is fetched before creating worker nodes
-  count                       = var.worker_count                                                                  # Number of worker nodes to create
-  ami                         = var.ubuntu_ami                                                                    #Use the Ubuntu AMI from SSM Parameter Store
-  instance_type               = var.worker_instance_type                                                          # Use the instance type from a variable
-  key_name                    = aws_key_pair.aws_key.key_name                                                     # Use the key pair created above
-  vpc_security_group_ids      = [var.security_group]                                                              # Use the security group ID from a variable
-  associate_public_ip_address = true                                                                              # Associate a public IP address
-  subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]                # Use the subnet ID from a variable, assuming multiple subnets for workers
-  user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
+resource "aws_instance" "k8s-worker" {                                                             # Ensure the join command is fetched before creating worker nodes
+  count                       = var.worker_count                                                   # Number of worker nodes to create
+  ami                         = var.ubuntu_ami                                                     #Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.worker_instance_type                                           # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name                                      # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]                                               # Use the security group ID from a variable
+  associate_public_ip_address = true                                                               # Associate a public IP address
+  subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)] # Use the subnet ID from a variable, assuming multiple subnets for workers
+  user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh")                # User data script to initialize the worker nodes
 
   tags = {
     Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
