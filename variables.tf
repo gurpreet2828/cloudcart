@@ -9,7 +9,7 @@ variable "ssh_key_private" {
   description = "Path to the private SSH key for accessing the instances"
   type        = string
   default     = "~/.ssh/docker" # Default path, can be overridden
-  
+
 }
 variable "k8s_master_dependency" {
   description = "Dependency for the Kubernetes master node to ensure it is created before installing monitoring tools"
