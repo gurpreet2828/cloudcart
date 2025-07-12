@@ -61,7 +61,7 @@ variable "ssh_key_public" {
 variable "ssh_key_private" {
   description = "Path to the private SSH key file for accessing the instances"
   type        = string
-  default     = "/home/administrator/.ssh/docker" # Default path to the private SSH key
+ # default     = "/home/administrator/.ssh/docker" # Default path to the private SSH key
 
 }
 variable "security_group" {
