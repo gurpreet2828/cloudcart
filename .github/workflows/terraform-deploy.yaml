@@ -22,7 +22,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@
+
+      - name: Prepare join_command.sh file
+        run: |
+          mkdir -p terraform-aws/scripts
+          echo '#!/bin/bash' > terraform-aws/scripts/join_command.sh
+          echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
+          chmod +x terraform-aws/scripts/join_command.sh
 
       - name: Set up SSH private key
         run: |
