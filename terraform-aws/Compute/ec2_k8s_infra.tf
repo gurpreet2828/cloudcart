@@ -173,7 +173,7 @@ resource "aws_instance" "k8s-worker" {                                          
   vpc_security_group_ids      = [var.security_group]                                                              # Use the security group ID from a variable
   associate_public_ip_address = true                                                                              # Associate a public IP address
   subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]                # Use the subnet ID from a variable, assuming multiple subnets for workers
-  user_data                   = file("/home/administrator/cloudcart/terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
+  user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh") # User data script to initialize the worker nodes
 
   tags = {
     Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
