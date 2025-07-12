@@ -31,11 +31,13 @@ jobs:
         uses: actions/checkout@v3
         # This step clones your GitHub repository into the runner environment,
         # so that Terraform can access your configuration files.
-      - name: Save SSH private key
+
+      - name: Set up SSH key
         run: |
-          mkdir -p terraform-aws/keys
-          echo "${{ secrets.PRIVATE_KEY_B64 }}" | base64 -d > terraform-aws/keys/docker
-          chmod 600 terraform-aws/keys/docker
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
+          chmod 600 ~/.ssh/docker
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         # Installs the Terraform CLI on the runner machine,
