@@ -141,7 +141,7 @@ resource "null_resource" "fetch_join_command" {
   provisioner "local-exec" {
     command = <<EOT
   echo 'Copying join command to local machine...'
-  scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+  scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_eip.k8s_master_eip.public_ip}:${path.module}/scripts/join_command.sh ${path.module}/scripts/join_command.sh
   echo 'Join command copied successfully!'
   EOT
   }
@@ -240,9 +240,9 @@ resource "null_resource" "fetch_worker_join_command" {
     inline = [
       "echo 'Executing join command on worker node...'",
       "set -ex",
-      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",         # Ensure the directory is writable
-      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh", # Change ownership to the ubuntu user                                                # Exit on error
-      "sudo sh /home/ubuntu/cloudcart/scripts/join_command.sh",                     # Execute the join command to join the worker node to the cluster
+      "sudo chmod -R u+rxw ${path.module}/scripts/join_command.sh",         # Ensure the directory is writable
+      "sudo chown -R ubuntu:ubuntu ${path.module}/scripts/join_command.sh", # Change ownership to the ubuntu user                                                # Exit on error
+      "sudo sh ${path.module}/scripts/join_command.sh",                     # Execute the join command to join the worker node to the cluster
       "echo 'Worker node joined to the cluster successfully!'"
     ]
   }
