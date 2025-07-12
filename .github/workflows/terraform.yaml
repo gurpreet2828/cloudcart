@@ -1,22 +1,27 @@
 name: Terraform CI/CD
 
+# The workflow triggers:
+# - Manually via GitHub UI (workflow_dispatch)
+# - Automatically when there is a push to the main branch,
+#   but only if files with .tf extension or inside terraform folders change
 on:
-  workflow_dispatch:
+  workflow_dispatch:      # Allows manual workflow run via GitHub Actions tab
   push:
     branches:
-      - main
+      - main             # Only trigger for pushes to the 'main' branch
     paths:
-      - "**.tf"
-      - "terraform/**"
-      - "variables.tf"
-      - "outputs.tf"
+      - "**.tf"          # Trigger only if any Terraform (*.tf) files change
+      - "terraform/**"   # Or if any files inside the terraform folder change
+      - "terraform-aws/**" # Or if files inside terraform-aws folder change
 
 jobs:
   terraform:
-    runs-on: ubuntu-latest
-    environment: production
+    runs-on: ubuntu-latest  # Use latest Ubuntu Linux virtual machine for the job
+    environment: production # Environment label for deployment (optional for tracking)
 
     env:
+      # These environment variables provide AWS credentials from GitHub Secrets.
+      # Terraform uses these credentials to manage AWS resources securely.
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
@@ -24,37 +29,73 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        # This step clones your GitHub repository into the runner environment,
+        # so that Terraform can access your configuration files.
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        # Installs the Terraform CLI on the runner machine,
+        # so you can run terraform commands in later steps.
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
+        # Checks all Terraform files for correct formatting.
+        # If any files are not formatted properly, this step fails.
+        # Ensures consistent and clean Terraform code style.
 
       - name: Terraform Init
         run: terraform init
-
-      - name: Terraform Plan with Debug Logs
+        # Initializes Terraform:
+        # - Downloads required providers/plugins specified in your configuration.
+        # - Prepares the working directory to run Terraform commands.
+      - name: Terraform Validate
+        run: terraform validate
+        # Validates the Terraform configuration files for syntax errors.
+      - name: Terraform Plan with Exit Code Handling
         env:
           TF_LOG: DEBUG
           TF_LOG_PATH: terraform.log
         run: |
           terraform plan -out=tfplan
-          cat terraform.log
+          EXIT_CODE=$?          # Save the exit code from terraform plan
+          cat terraform.log     # Print the debug log to the console for troubleshooting
+
+          # Handle different possible exit codes from 'terraform plan':
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "Terraform plan succeeded with no changes."
+            exit 0             # Exit successfully: no infrastructure changes needed
+          elif [ $EXIT_CODE -eq 2 ]; then
+            echo "Terraform CLI exited with code 2 (deprecated)."
+            exit 2             # Exit with code 2 (used in older versions, usually ignored)
+          elif [ $EXIT_CODE -eq 3 ]; then
+            echo "Terraform plan completed successfully with changes."
+            exit 0             # Exit successfully: plan has changes to apply
+          else
+            echo "Terraform plan failed with error (exit code $EXIT_CODE)."
+            exit 1             # Exit with error, stopping the workflow
+          fi
 
       - name: Upload Plan File
+        if: always()          # Always run this step, even if previous failed
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
-          path: tfplan
+          name: tfplan        # Name of the artifact to upload
+          path: tfplan        # Path of the Terraform plan file to save for download
+        # Uploads the 'tfplan' file as a workflow artifact,
+        # so it can be downloaded later for review or applied in another job.
 
-      - name: Upload Terraform Logs
-        if: always()
+      - name: Upload Terraform Debug Log
+        if: always()          # Always upload the debug log, even on failure
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-logs
+          name: terraform-debug-log
           path: terraform.log
+        # Saves the debug log file from terraform plan,
+        # helpful for diagnosing errors or reviewing detailed output.
 
       - name: Terraform Apply
-        if: success()
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         run: terraform apply -auto-approve tfplan
+        # Automatically applies the Terraform changes described in the saved plan.
+        # This step only runs on pushes to the main branch.
+        # '-auto-approve' skips manual confirmation to enable automated deployment.
