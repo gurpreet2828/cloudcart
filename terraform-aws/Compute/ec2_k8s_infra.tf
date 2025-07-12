@@ -56,15 +56,15 @@ resource "aws_eip" "k8s_master_eip" {
 }
 
 # Creating EBS volume for the master node
-resource "aws_ebs_volume" "k8s_master_ebs_volume" {
-  availability_zone = var.master_az
-  size              = var.master_ebs_volume_size
-  type              = "gp3"
-  encrypted         = true
-  tags = {
-    Name = "k8s-master-ebs-volume"
-  }
-}
+# resource "aws_ebs_volume" "k8s_master_ebs_volume" {
+#   availability_zone = var.master_az
+#   size              = var.master_ebs_volume_size
+#   type              = "gp3"
+#   encrypted         = true
+#   tags = {
+#     Name = "k8s-master-ebs-volume"
+#   }
+# }
 
 resource "aws_volume_attachment" "master_attach_volume" {
   instance_id  = aws_instance.k8s-master.id
