@@ -8,9 +8,9 @@ provider "aws" {
 }
 
 #create a key pair for SSH access to the instances
-resource "aws_key_pair" "aws_key" { 
-  key_name   = "k8s"
-# public_key = file(var.ssh_key_public) # Path to your public SSH key file
+resource "aws_key_pair" "aws_key" {
+  key_name = "k8s"
+  # public_key = file(var.ssh_key_public) # Path to your public SSH key file
   public_key = file("${path.module}/../keys/docker.pub") # Path to your public SSH key file
 }
 
@@ -108,7 +108,7 @@ resource "null_resource" "fetch_join_command" {
     host        = aws_eip.k8s_master_eip.public_ip # Connect to the master node's elastic IP
     user        = "ubuntu"                         # Use the default user for Ubuntu instances
     private_key = file(var.ssh_key_private)        # Path to your private SSH key file
-   # private_key = file("/home/administrator/.ssh/docker") # Path to your private SSH key file
+    # private_key = file("/home/administrator/.ssh/docker") # Path to your private SSH key file
   }
 
   # Provisioner to fetch the join command from the master node 
