@@ -28,7 +28,7 @@ resource "aws_instance" "k8s-master" {
   associate_public_ip_address = false                         # Associate a public IP address
   subnet_id                   = var.public_subnet_one         # Use the subnet ID from a variable
   # This script installs necessary packages and configures the Kubernetes master node
-  user_data = file("/home/administrator/cloudcart/terraform-aws/scripts/install-k8s-master.sh")
+  user_data = file("terraform-aws/scripts/install-k8s-master.sh")
   tags = {
     Name = "k8s-master"
   }
