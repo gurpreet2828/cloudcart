@@ -8,9 +8,9 @@ provider "aws" {
 }
 
 #create a key pair for SSH access to the instances
-resource "aws_key_pair" "aws_key" { #
+resource "aws_key_pair" "aws_key" { 
   key_name   = "k8s"
-  #public_key = file(var.ssh_key_public) # Path to your public SSH key file
+# public_key = file(var.ssh_key_public) # Path to your public SSH key file
   public_key = file("${path.module}/../keys/docker.pub") # Path to your public SSH key file
 }
 
