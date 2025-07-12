@@ -38,8 +38,6 @@ resource "null_resource" "deployment_app" {
       "echo 'Waiting for sock-shop pods to be ready...'",
       "kubectl get pods -n sock-shop",
       "echo 'All sock-shop pods are ready and sock-shop application deployed...'"
-
-
     ]
 
   }
