@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@
+        uses: actions/checkout@v3
 
       - name: Prepare join_command.sh file
         run: |
