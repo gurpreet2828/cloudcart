@@ -1,3 +1,6 @@
+# this is the main Terraform configuration file for setting up a Kubernetes cluster on AWS.
+# It includes modules for compute resources, network configuration, storage, monitoring, and application deployment.
+
 terraform {
   required_providers {
     aws = {
