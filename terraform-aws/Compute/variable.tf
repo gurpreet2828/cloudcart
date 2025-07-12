@@ -56,7 +56,7 @@ variable "worker_disk_size" {
 variable "ssh_key_public" {
   description = "Path to the public SSH key file for accessing the instances"
   type        = string
-  default     = "terraform-aws/keys/docker.pub" # Default path to the public SSH key
+  default     = "${path.module}/../keys/docker.pub" # Default path to the public SSH key
 }
 variable "ssh_key_private" {
   description = "Path to the private SSH key file for accessing the instances"
