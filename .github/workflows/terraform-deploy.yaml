@@ -27,6 +27,7 @@ jobs:
       - name: Set Git Safe Directory (to avoid errors)
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
+      # Create placeholder join_command.sh to avoid file not found errors
       - name: Prepare placeholder join_command.sh file
         run: |
           mkdir -p terraform-aws/scripts
@@ -34,6 +35,23 @@ jobs:
           echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
           chmod +x terraform-aws/scripts/join_command.sh
 
+      # Create placeholder sock-shop YAML to avoid file not found errors
+      - name: Prepare placeholder sock-shop deployment YAML
+        run: |
+          mkdir -p deploy-sock-shop/kubernetes
+          cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: placeholder
+          spec:
+            containers:
+            - name: placeholder
+              image: busybox
+              command: ["sleep", "3600"]
+          EOF
+
+      # Set up SSH private key for Terraform provisioners
       - name: Set up SSH private key
         run: |
           mkdir -p ~/.ssh
