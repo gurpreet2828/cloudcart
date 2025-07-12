@@ -57,13 +57,13 @@ jobs:
         run: terraform validate
         # Validates the Terraform configuration files for syntax errors.
       - name: Terraform Plan with Exit Code Handling
-        env:
-          TF_LOG: DEBUG
-          TF_LOG_PATH: terraform.log
+        # env:
+        #   TF_LOG: DEBUG
+        #   TF_LOG_PATH: terraform.log
         run: |
           terraform plan -out=tfplan
           EXIT_CODE=$?          # Save the exit code from terraform plan
-          cat terraform.log     # Print the debug log to the console for troubleshooting
+          # cat terraform.log     # Print the debug log to the console for troubleshooting
 
           # Handle different possible exit codes from 'terraform plan':
           if [ $EXIT_CODE -eq 0 ]; then
@@ -89,15 +89,14 @@ jobs:
         # Uploads the 'tfplan' file as a workflow artifact,
         # so it can be downloaded later for review or applied in another job.
 
-      - name: Upload Terraform Debug Log
-        if: always() # Always upload the debug log, even on failure
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-debug-log
-          path: terraform.log
-        # Saves the debug log file from terraform plan,
-        # helpful for diagnosing errors or reviewing detailed output.
-
+      # - name: Upload Terraform Debug Log
+      #   if: always() # Always upload the debug log, even on failure
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: terraform-debug-log
+      #     path: terraform.log
+      # Saves the debug log file from terraform plan,
+      # helpful for diagnosing errors or reviewing detailed output.
       - name: Terraform Apply
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         run: terraform apply -auto-approve tfplan
