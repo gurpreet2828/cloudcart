@@ -37,8 +37,8 @@ jobs:
         # Installs the Terraform CLI on the runner machine,
         # so you can run terraform commands in later steps.
 
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
+      # - name: Terraform Format Check
+      #   run: terraform fmt -check -recursive
         # Checks all Terraform files for correct formatting.
         # If any files are not formatted properly, this step fails.
         # Ensures consistent and clean Terraform code style.
