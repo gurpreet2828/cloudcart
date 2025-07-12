@@ -16,7 +16,7 @@ resource "null_resource" "deployment_app" {
       "sudo mkdir -p /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes",               # Create a directory for application deployment if it doesn't exist
       "sudo chmod -R u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes",         # Ensure the directory is writable
       "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes", # Change ownership to the ubuntu user
-      "echo 'Directory created successfully!'"
+      "echo '---Directory created successfully!---'"
     ]
 
   }
