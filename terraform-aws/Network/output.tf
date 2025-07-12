@@ -10,22 +10,22 @@ output "public_subnet_two_id" {
 
 
 output "vpc_id" {
-  value = aws_vpc.k8s_vpc.id
-    description = "ID of the Kubernetes VPC"
+  value       = aws_vpc.k8s_vpc.id
+  description = "ID of the Kubernetes VPC"
 }
 
 output "public_route_table_id" {
-  value = aws_route_table.k8s_public_rt.id
-    description = "ID of the public route table associated with the Kubernetes VPC"
+  value       = aws_route_table.k8s_public_rt.id
+  description = "ID of the public route table associated with the Kubernetes VPC"
 }
 
 output "internet_gateway_id" {
-  value = aws_internet_gateway.k8s_igw.id
-    description = "ID of the internet gateway attached to the Kubernetes VPC"
+  value       = aws_internet_gateway.k8s_igw.id
+  description = "ID of the internet gateway attached to the Kubernetes VPC"
 }
 
 output "security_group_id" {
-  value = aws_security_group.k8s_sg.id
+  value       = aws_security_group.k8s_sg.id
   description = "value of the security group for the Kubernetes cluster"
 }
 
