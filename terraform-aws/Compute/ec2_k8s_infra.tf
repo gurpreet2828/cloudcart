@@ -153,9 +153,9 @@ resource "null_resource" "prepare_join_script" {
     command = <<EOT
       echo 'Setting permissions for local join_command.sh...'
       set -ex
-      if [ -f /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh ]; then
-        sudo chown administrator:administrator /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
-        sudo chmod u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+      if [ -f ${path.module}/scripts/join_command.sh ]; then
+        sudo chown administrator:administrator ${path.module}/scripts/join_command.sh
+        sudo chmod u+rxw ${path.module}/scripts/join_command.sh
       else
         echo 'join_command.sh not found!'
         exit 1
@@ -231,7 +231,7 @@ resource "null_resource" "fetch_worker_join_command" {
 
   # Copy the join command file to each worker node
   provisioner "file" {
-    source      = "/home/administrator/cloudcart/terraform-aws/scripts/join_command.sh" # Path to the join command file                                                        # Create the directory if it doesn't exist
+    source      = "${path.module}/scripts/join_command.sh" # Path to the join command file                                                        # Create the directory if it doesn't exist
     destination = "${path.module}/scripts/join_command.sh"                      # Destination path on the worker node
   }
 
