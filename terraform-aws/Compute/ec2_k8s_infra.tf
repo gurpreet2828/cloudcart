@@ -79,9 +79,9 @@ resource "null_resource" "mount_ebs_ec2" {
   depends_on = [aws_volume_attachment.master_attach_volume]
 
   connection {
-    type = "ssh"
-    host = aws_eip.k8s_master_eip.public_ip
-    user = "ubuntu"
+    type        = "ssh"
+    host        = aws_eip.k8s_master_eip.public_ip
+    user        = "ubuntu"
     private_key = file(var.ssh_key_private)
     #private_key = var.ssh_key_private # Path to your private SSH key file for github actions
   }
@@ -127,9 +127,9 @@ resource "null_resource" "fetch_join_command" {
       # Create the join command and save it to a file
       "sudo kubeadm token create --print-join-command | sed 's/^/sudo /; s/$/ --ignore-preflight-errors=all/' | sudo tee /home/ubuntu/cloudcart/scripts/join_command.sh > /dev/null",
       # Ensure the join command file is readable
-      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",
+      "sudo chmod u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",
       # Change ownership to the ubuntu user
-      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh",
+      "sudo chown ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh",
       "echo 'Join command saved to /home/ubuntu/cloudcart/scripts/join_command.sh'",
       "ls -lt /home/ubuntu/cloudcart/scripts/join_command.sh", # List the file to confirm it exists
       # Display the contents of the join command file
@@ -140,6 +140,7 @@ resource "null_resource" "fetch_join_command" {
   #copy the join command file to the local machine
   provisioner "local-exec" {
     command = <<EOT
+  mkdir -p /home/administrator/cloudcart/terraform-aws/scripts
   echo 'Copying join command to local machine...'
   scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
   echo 'Join command copied successfully!'
@@ -269,5 +270,4 @@ resource "null_resource" "verify_worker_nodes" {
       "echo 'Worker nodes verified successfully!'"
     ]
   }
-
 }
