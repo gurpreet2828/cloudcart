@@ -140,10 +140,10 @@ resource "null_resource" "fetch_join_command" {
   #copy the join command file to the local machine
   provisioner "local-exec" {
     command = <<EOT
-  mkdir -p /home/administrator/cloudcart/terraform-aws/scripts
-  echo 'Copying join command to local machine...'
-  scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
-  echo 'Join command copied successfully!'
+    sudo mkdir -p /home/administrator/cloudcart/terraform-aws/scripts
+    echo 'Copying join command to local machine...'
+    scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@${aws_eip.k8s_master_eip.public_ip}:/home/ubuntu/cloudcart/scripts/join_command.sh /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+    echo 'Join command copied successfully!'
   EOT
   }
 }
