@@ -17,7 +17,7 @@ resource "null_resource" "install_grafana" {
   #.................................................
 
   # Create a directory named scripts in master node
-  
+
   # provisioner "remote-exec" {
   #   inline = [
   #     "echo 'Creating directory for scripts on master node...'",
@@ -48,7 +48,7 @@ resource "null_resource" "install_grafana" {
   #   ]
 
   # }
-  
+
 
   #..............................................
   #...Installation of Grafana using manifest files

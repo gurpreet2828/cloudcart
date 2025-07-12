@@ -32,6 +32,6 @@ variable "fetch_join_command_dependency" {
 
 variable "deployment_app_dependency" {
   description = "Dependency of deployment application to ensure application running properly and available for monitoring"
-  type = any
-  default = null
+  type        = any
+  default     = null
 }

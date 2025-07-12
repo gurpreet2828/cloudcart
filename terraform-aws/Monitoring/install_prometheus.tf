@@ -4,7 +4,7 @@ resource "null_resource" "install_prometheus" {
   depends_on = [
     var.k8s_master_dependency,
     var.fetch_join_command_dependency,
-  null_resource.install_helm,
+    null_resource.install_helm,
   var.deployment_app_dependency]
 
   connection {

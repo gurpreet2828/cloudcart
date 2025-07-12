@@ -18,7 +18,7 @@ resource "null_resource" "kube_state_metrics" {
   #.................................................
 
   # Create a directory named scripts in master node
-  
+
   # provisioner "remote-exec" {
   #   inline = [
   #     "echo 'Creating directory for scripts on master node...'",
@@ -49,7 +49,7 @@ resource "null_resource" "kube_state_metrics" {
   #   ]
 
   # }
-  
+
 
   #..............................................
   #...Installation of Grafana using manifest files

@@ -25,8 +25,8 @@ resource "null_resource" "install_helm" {
     ]
   }
 
-  
-#Copy the install_helm.sh script from local machine to master EC2 instance
+
+  #Copy the install_helm.sh script from local machine to master EC2 instance
 
   provisioner "file" {
     source      = "/home/administrator/cloudcart/terraform-aws/scripts/install_helm.sh" # Path to the Helm installation script
