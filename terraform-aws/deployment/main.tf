@@ -36,12 +36,12 @@ resource "null_resource" "deployment_app" {
       "kubectl apply -f /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "echo 'Watching pods come up in sock-shop namespace...'",
       "kubectl get pods -n sock-shop --watch &", # run watch in background
+      "WATCH_PID=$!",                            # capture PID of background job
       "sleep 10",
       "echo 'Waiting for sock-shop pods to be ready...'",
-      "kubectl get pods -n sock-shop --watch",
       "kubectl wait --for=condition=Ready pods --all --namespace=sock-shop --timeout=300s",
-      "pkill -f 'kubectl get pods --watch' || true", # cleanup background watch (safe)
-      "echo 'Final pod status:'",
+      "kill $WATCH_PID || true", # cleanup background watch safely
+      "echo 'Final pod status:'", 
       "kubectl get pods -n sock-shop",
       "echo 'All sock-shop pods are ready and sock-shop application deployed...'"
     ]
