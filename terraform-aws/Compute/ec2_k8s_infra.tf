@@ -266,7 +266,7 @@ resource "null_resource" "verify_worker_nodes" {
     inline = [
       "echo 'Waiting for all nodes to be Ready...'",
       "for i in $(seq 1 30); do",          # try up to 30 times
-      "  NOT_READY=$(kubectl get nodes | grep -v ' Ready' | wc -l)",
+      "  NOT_READY=$(kubectl get nodes | grep -v 'Ready' | wc -l)",
       "  if [ \"$NOT_READY\" -eq 0 ]; then",
       "    echo 'All nodes are Ready!'",
       "    exit 0",                       # success, exit loop
@@ -275,7 +275,8 @@ resource "null_resource" "verify_worker_nodes" {
       "  sleep 10",
       "done",
       "echo 'Timeout waiting for nodes to be Ready'",
-      "kubectl get nodes",
+      "kubectl get nodes -o wide", # Display the status of all nodes
+      "echo 'Not all nodes are Ready after 5 minutes!'",
       "exit 1"                           # fail after timeout
      
     ]
