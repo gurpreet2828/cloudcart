@@ -35,20 +35,27 @@ jobs:
           echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
           chmod +x terraform-aws/scripts/join_command.sh
 
-      # - name: Prepare placeholder Sock Shop YAML
-      #   run: |
-      #     mkdir -p deploy-sock-shop/kubernetes
-      #     cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
-      #     apiVersion: v1
-      #     kind: Pod
-      #     metadata:
-      #       name: placeholder
-      #     spec:
-      #       containers:
-      #       - name: placeholder
-      #         image: busybox
-      #         command: ["sleep", "3600"]
-      #     EOF
+      - name: Prepare placeholder Sock Shop YAML
+        run: |
+          mkdir -p deploy-sock-shop/kubernetes
+          cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: placeholder
+          spec:
+            containers:
+            - name: placeholder
+              image: busybox
+              command: ["sleep", "3600"]
+          EOF
+
+      - name: Prepare placeholder for helm chart
+        run: |
+          mkdir -p terraform-aws/scripts
+          echo '#!/bin/bash' > terraform-aws/scripts/helm_install.sh
+          echo 'echo "This is a placeholder Helm install script."' >> terraform-aws/scripts/helm_install.sh
+          chmod +x terraform-aws/scripts/helm_install.sh
 
       - name: Setup SSH Key for Provisioners
         run: |
@@ -149,3 +156,25 @@ jobs:
 
       - name: List sock-shop pods
         run: kubectl get pods -n sock-shop
+
+  deploy_monitoring:
+    runs-on: ubuntu-latest
+    needs: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Deploy prometheus
+        run: |
+          kubectl apply -f deploy-sock-shop/kubernetes/monitoring-app/prometheus/
+
+      - name: Deploy grafana
+        run: |
+          kubectl apply -f deploy-sock-shop/kubernetes/monitoring-app/grafana/
