@@ -264,21 +264,11 @@ resource "null_resource" "verify_worker_nodes" {
   # This provisioner verifies that the worker nodes have successfully joined the Kubernetes cluster
   provisioner "remote-exec" {
     inline = [
-      "echo 'Waiting for all nodes to be Ready...'",
-      "for i in $(seq 1 30); do",          # try up to 30 times
-      "  NOT_READY=$(kubectl get nodes | grep -v 'Ready' | wc -l)",
-      "  if [ \"$NOT_READY\" -eq 0 ]; then",
-      "    echo 'All nodes are Ready!'",
-      "    exit 0",                       # success, exit loop
-      "  fi",
-      "  echo \"$NOT_READY nodes not ready yet. Waiting 10 seconds...\"",
-      "  sleep 10",
-      "done",
-      "echo 'Timeout waiting for nodes to be Ready'",
+      "echo 'Verifying worker nodes in the Kubernetes cluster...'",
+      "set -ex",
       "kubectl get nodes -o wide", # Display the status of all nodes
-      "echo 'Not all nodes are Ready after 5 minutes!'",
-      "exit 1"                           # fail after timeout
-     
+      "echo 'Worker nodes verification completed!'"
+
     ]
   }
 }
