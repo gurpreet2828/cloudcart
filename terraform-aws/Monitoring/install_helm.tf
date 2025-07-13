@@ -29,7 +29,7 @@ resource "null_resource" "install_helm" {
   #Copy the install_helm.sh script from local machine to master EC2 instance
 
   provisioner "file" {
-    source      = "${path.module}/scripts/install_helm.sh" # Path to the Helm installation script
+    source      = "${path.module}/../scripts/install_helm.sh" # Path to the Helm installation script
     destination = "/home/ubuntu/cloudcart/scripts/install_helm.sh"                      # Destination path on the master node
   }
 
