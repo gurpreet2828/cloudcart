@@ -21,9 +21,9 @@ resource "null_resource" "deployment_app" {
 
   }
 
-  # Copy the manfiset file for the deployment application from local machine to master Node
+  # Copy the manifest file for the deployment application from local machine to master Node
   provisioner "file" {
-    source      = "/home/administrator/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml"
+    source      = "${path.module}/../../deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml"
     destination = "/home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml"
   }
 
