@@ -64,8 +64,8 @@ resource "null_resource" "install_prometheus" {
   #Copy the yaml files from local machine to master EC2 instance
   provisioner "local-exec" {
     command = <<EOT
-   echo "copy entire prometheus yaml files from loacl to master node"
-   scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} -r /home/administrator/cloudcart/deploy-sock-shop/monitoring-app/prometheus ubuntu@${var.k8s_master_eip}:/home/ubuntu/cloudcart/deploy-sock-shop/Monitoring
+   echo "copy entire prometheus yaml files from local to master node"
+   scp -o StrictHostKeyChecking=no -i ${var.ssh_key_private} -r ${path.module}/../../deploy-sock-shop/monitoring-app/prometheus ubuntu@${var.k8s_master_eip}:/home/ubuntu/cloudcart/deploy-sock-shop/Monitoring
    EOT
 
   }
