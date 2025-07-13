@@ -35,20 +35,20 @@ jobs:
           echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
           chmod +x terraform-aws/scripts/join_command.sh
 
-      - name: Prepare placeholder Sock Shop YAML
-        run: |
-          mkdir -p deploy-sock-shop/kubernetes
-          cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
-          apiVersion: v1
-          kind: Pod
-          metadata:
-            name: placeholder
-          spec:
-            containers:
-            - name: placeholder
-              image: busybox
-              command: ["sleep", "3600"]
-          EOF
+      # - name: Prepare placeholder Sock Shop YAML
+      #   run: |
+      #     mkdir -p deploy-sock-shop/kubernetes
+      #     cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
+      #     apiVersion: v1
+      #     kind: Pod
+      #     metadata:
+      #       name: placeholder
+      #     spec:
+      #       containers:
+      #       - name: placeholder
+      #         image: busybox
+      #         command: ["sleep", "3600"]
+      #     EOF
 
       - name: Prepare placeholder for helm chart
         run: |
