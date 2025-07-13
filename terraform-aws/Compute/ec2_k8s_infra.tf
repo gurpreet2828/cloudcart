@@ -115,6 +115,7 @@ resource "null_resource" "fetch_join_command" {
   # Provisioner to fetch the join command from the master node 
   provisioner "remote-exec" {
     inline = [
+      set -ex, # Exit on error
       # Wait until kubeadm init has completed
       "while [ ! -f /etc/kubernetes/admin.conf ]; do echo 'Waiting for kubeadm init...'; sleep 10; done",
       # Wait until kubeadm command works
