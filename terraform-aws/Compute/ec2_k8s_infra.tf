@@ -118,11 +118,13 @@ resource "null_resource" "fetch_join_command" {
       "set -ex", # Exit on error
       # Wait until kubeadm init has completed
       "while [ ! -f /etc/kubernetes/admin.conf ]; do echo 'Waiting for kubeadm init...'; sleep 10; done",
+      "echo 'Kubeadm init completed!'",
       # Wait until kubeadm command works
       "until sudo kubeadm token list >/dev/null 2>&1; do echo 'Waiting for kubeadm to be ready...'; sleep 5; done",
-      "kubectl version",   # Check the Kubernetes version to confirm kubeadm is ready
-      "kubeadm version",   # Check the kubeadm version to confirm it's working
-      "kubelet --version", # Display cluster information to confirm the master node is set up
+      "echo 'Kubeadm is ready!'",
+      #"kubectl version",   # Check the Kubernetes version to confirm kubeadm is ready
+      #"kubeadm version",   # Check the kubeadm version to confirm it's working
+      #"kubelet --version", # Display cluster information to confirm the master node is set up
       "echo 'Kubernetes master node is ready! Fetching join command...'",
       "sudo mkdir -p /home/ubuntu/cloudcart/scripts/", # Create a directory for scripts if it doesn't exist
       # Create the join command and save it to a file
