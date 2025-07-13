@@ -9,6 +9,7 @@ on:
       - "**.tf"
       - "terraform/**"
       - "terraform-aws/**"
+      - "deploy-sock-shop/**"
 
 jobs:
   terraform:
@@ -27,7 +28,7 @@ jobs:
       - name: Set Git Safe Directory (to avoid errors)
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      # Create placeholder join_command.sh to avoid file not found errors
+      # Prepare placeholder join_command.sh file
       - name: Prepare placeholder join_command.sh file
         run: |
           mkdir -p terraform-aws/scripts
@@ -35,7 +36,7 @@ jobs:
           echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
           chmod +x terraform-aws/scripts/join_command.sh
 
-      # Create placeholder sock-shop YAML to avoid file not found errors
+      # Prepare placeholder sock-shop deployment YAML
       - name: Prepare placeholder sock-shop deployment YAML
         run: |
           mkdir -p deploy-sock-shop/kubernetes
@@ -51,7 +52,7 @@ jobs:
               command: ["sleep", "3600"]
           EOF
 
-      # Set up SSH private key for Terraform provisioners
+      # Setup SSH private key for Terraform provisioners
       - name: Set up SSH private key
         run: |
           mkdir -p ~/.ssh
@@ -98,3 +99,32 @@ jobs:
         env:
           TF_VAR_ssh_key_private: ~/.ssh/docker
         run: terraform apply -auto-approve tfplan
+
+  deploy_app:
+    runs-on: ubuntu-latest
+    needs: terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Create sock-shop namespace if missing
+        run: |
+          kubectl get namespace sock-shop || kubectl create namespace sock-shop
+
+      - name: Deploy sock-shop app
+        run: |
+          kubectl apply -f deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml -n sock-shop
+
+      - name: Wait for pods to be ready
+        run: |
+          kubectl wait --for=condition=Ready pods --all -n sock-shop --timeout=300s
+
+      - name: List sock-shop pods
+        run: kubectl get pods -n sock-shop
