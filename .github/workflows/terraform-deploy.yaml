@@ -178,3 +178,7 @@ jobs:
       - name: Deploy grafana
         run: |
           kubectl apply -f deploy-sock-shop/kubernetes/monitoring-app/grafana/
+
+      - name: Deploy kube-state-metrics
+        run: |
+          kubectl apply -f deploy-sock-shop/kubernetes/monitoring-app/kube-state-metrics/
