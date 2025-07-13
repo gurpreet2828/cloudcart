@@ -70,6 +70,9 @@ resource "null_resource" "install_prometheus" {
 
   }
 
+  #Install Prometheus on master EC2 node using kubectl
+  # This provisioner applies the Prometheus manifest files to the Kubernetes cluster
+  # It creates the monitoring namespace and deploys Prometheus using the provided YAML files
   provisioner "remote-exec" {
     inline = [
       "echo 'Installing Prometheus...'",
