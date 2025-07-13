@@ -155,7 +155,7 @@ resource "null_resource" "prepare_join_script" {
       echo 'Setting permissions for local join_command.sh...'
       set -ex
       if [ -f /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh ]; then
-        sudo chown administrator:administrator /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
+        sudo chown $(whoami):$(whoami) /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
         sudo chmod u+rxw /home/administrator/cloudcart/terraform-aws/scripts/join_command.sh
       else
         echo 'join_command.sh not found!'
