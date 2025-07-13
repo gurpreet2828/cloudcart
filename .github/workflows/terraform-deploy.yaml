@@ -35,20 +35,20 @@ jobs:
           echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
           chmod +x terraform-aws/scripts/join_command.sh
 
-      - name: Prepare placeholder Sock Shop YAML
-        run: |
-          mkdir -p deploy-sock-shop/kubernetes
-          cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
-          apiVersion: v1
-          kind: Pod
-          metadata:
-            name: placeholder
-          spec:
-            containers:
-            - name: placeholder
-              image: busybox
-              command: ["sleep", "3600"]
-          EOF
+      # - name: Prepare placeholder Sock Shop YAML
+      #   run: |
+      #     mkdir -p deploy-sock-shop/kubernetes
+      #     cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
+      #     apiVersion: v1
+      #     kind: Pod
+      #     metadata:
+      #       name: placeholder
+      #     spec:
+      #       containers:
+      #       - name: placeholder
+      #         image: busybox
+      #         command: ["sleep", "3600"]
+      #     EOF
 
       - name: Setup SSH Key for Provisioners
         run: |
@@ -68,20 +68,6 @@ jobs:
       - name: Terraform Plan
         run: |
           terraform plan -out=tfplan
-          EXIT_CODE=$?
-          if [ $EXIT_CODE -eq 0 ]; then
-            echo "Terraform plan succeeded with no changes."
-            exit 0
-          elif [ $EXIT_CODE -eq 2 ]; then
-            echo "Terraform plan exited with code 2."
-            exit 2
-          elif [ $EXIT_CODE -eq 3 ]; then
-            echo "Terraform plan completed successfully with changes."
-            exit 0
-          else
-            echo "Terraform plan failed with exit code $EXIT_CODE."
-            exit 1
-          fi
 
       - name: Upload Plan File
         if: always()
