@@ -58,7 +58,7 @@ module "Monitoring" {
 }
 
 
-# This module deploys the sock-shop application on the Kubernetes cluster
+# This module sets up the deployment of applications on the Kubernetes cluster
 module "deployment" {
   source                        = "./terraform-aws/deployment" # Path to the Deployment module
   aws_region                    = var.aws_region
