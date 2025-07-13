@@ -16,6 +16,7 @@ output "k8s_worker_connection_info" {
 }
 
 
+# output of Prometheus UI exposed via NodePort on the master
 output "prometheus_nodeport_url" {
   description = "Prometheus UI exposed via NodePort on the master node"
   value       = module.Monitoring.prometheus_nodeport_url
