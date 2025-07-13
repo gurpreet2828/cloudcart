@@ -60,7 +60,7 @@ module "Monitoring" {
 
 # This module sets up the deployment of applications on the Kubernetes cluster
 module "deployment" {
-  source                        = "./terraform-aws/deployment" # Path to the Deployment module
+  source                        = "./terraform-aws/deployment"
   aws_region                    = var.aws_region
   ssh_key_private               = var.ssh_key_private
   k8s_master_dependency         = module.Compute.k8s_master_instance
