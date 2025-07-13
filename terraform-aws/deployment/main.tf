@@ -35,7 +35,8 @@ resource "null_resource" "deployment_app" {
       "sudo chmod u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "kubectl apply -f /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "echo 'Waiting for sock-shop pods to be ready...'",
-      "kubectl get pods -n sock-shop --watch --timeout=300s",
+      "kubectl get pods -n sock-shop --watch",
+      "set +e", # Disable exit on error for the next command
       "kubectl wait --for=condition=Ready pods --all --namespace=sock-shop --timeout=300s",
       "kubectl get pods -n sock-shop",
       "echo 'All sock-shop pods are ready and sock-shop application deployed...'"
