@@ -56,6 +56,8 @@ module "Monitoring" {
   deployment_app_dependency     = module.deployment.deployment_app   #dependency on sock-shop application
 }
 
+
+# This module deploys the sock-shop application on the Kubernetes cluster
 module "deployment" {
   source                        = "./terraform-aws/deployment"
   aws_region                    = var.aws_region
