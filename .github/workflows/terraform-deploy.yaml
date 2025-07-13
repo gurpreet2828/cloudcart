@@ -25,19 +25,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set Git Safe Directory (to avoid errors)
+      - name: Set Git Safe Directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      # Prepare placeholder join_command.sh file
-      - name: Prepare placeholder join_command.sh file
+      - name: Prepare placeholder join_command.sh
         run: |
           mkdir -p terraform-aws/scripts
           echo '#!/bin/bash' > terraform-aws/scripts/join_command.sh
           echo 'echo "This is a placeholder join command script."' >> terraform-aws/scripts/join_command.sh
           chmod +x terraform-aws/scripts/join_command.sh
 
-      # Prepare placeholder sock-shop deployment YAML
-      - name: Prepare placeholder sock-shop deployment YAML
+      - name: Prepare placeholder Sock Shop YAML
         run: |
           mkdir -p deploy-sock-shop/kubernetes
           cat > deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml <<EOF
@@ -52,8 +50,7 @@ jobs:
               command: ["sleep", "3600"]
           EOF
 
-      # Setup SSH private key for Terraform provisioners
-      - name: Set up SSH private key
+      - name: Setup SSH Key for Provisioners
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
@@ -68,22 +65,21 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Terraform Plan with Exit Code Handling
+      - name: Terraform Plan
         run: |
           terraform plan -out=tfplan
           EXIT_CODE=$?
-
           if [ $EXIT_CODE -eq 0 ]; then
             echo "Terraform plan succeeded with no changes."
             exit 0
           elif [ $EXIT_CODE -eq 2 ]; then
-            echo "Terraform CLI exited with code 2 (deprecated)."
+            echo "Terraform plan exited with code 2."
             exit 2
           elif [ $EXIT_CODE -eq 3 ]; then
             echo "Terraform plan completed successfully with changes."
             exit 0
           else
-            echo "Terraform plan failed with error (exit code $EXIT_CODE)."
+            echo "Terraform plan failed with exit code $EXIT_CODE."
             exit 1
           fi
 
@@ -113,6 +109,45 @@ jobs:
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
+
+      - name: Wait for all nodes to be Ready
+        run: |
+          for i in {1..60}; do
+            NOT_READY=$(kubectl get nodes --no-headers | grep -v '\<Ready\>' | wc -l)
+            if [ "$NOT_READY" -eq 0 ]; then
+              echo "✅ All nodes are Ready!"
+              break
+            fi
+            echo "$NOT_READY nodes not ready yet. Retrying in 10s..."
+            sleep 10
+          done
+
+          NOT_READY_FINAL=$(kubectl get nodes --no-headers | grep -v '\<Ready\>' | wc -l)
+          if [ "$NOT_READY_FINAL" -ne 0 ]; then
+            echo "❌ Some nodes are still NotReady after 10 minutes."
+            kubectl get nodes
+            exit 1
+          fi
+
+      - name: Wait for default service account
+        run: |
+          for i in {1..30}; do
+            if kubectl get sa default >/dev/null 2>&1; then
+              echo "✅ Default service account exists"
+              break
+            fi
+            echo "⏳ Waiting for default service account..."
+            sleep 5
+          done
+
+          if ! kubectl get sa default >/dev/null 2>&1; then
+            echo "❌ Default service account still missing after timeout"
+            exit 1
+          fi
+
+      - name: Delete placeholder pod if exists
+        run: |
+          kubectl delete pod placeholder --ignore-not-found
 
       - name: Create sock-shop namespace if missing
         run: |
