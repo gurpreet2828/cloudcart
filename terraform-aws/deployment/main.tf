@@ -34,10 +34,14 @@ resource "null_resource" "deployment_app" {
       "sudo chown ubuntu:ubuntu /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "sudo chmod u+rxw /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
       "kubectl apply -f /home/ubuntu/cloudcart/deploy-sock-shop/kubernetes/sock-shop-full-deployment.yaml",
+      "echo 'Watching pods come up in sock-shop namespace...'",
+      "kubectl get pods -n sock-shop --watch &", # run watch in background
+      "sleep 10",
       "echo 'Waiting for sock-shop pods to be ready...'",
       "kubectl get pods -n sock-shop --watch",
-      "set +e", # Disable exit on error for the next command
       "kubectl wait --for=condition=Ready pods --all --namespace=sock-shop --timeout=300s",
+      "pkill -f 'kubectl get pods --watch' || true", # cleanup background watch (safe)
+      "echo 'Final pod status:'",
       "kubectl get pods -n sock-shop",
       "echo 'All sock-shop pods are ready and sock-shop application deployed...'"
     ]
