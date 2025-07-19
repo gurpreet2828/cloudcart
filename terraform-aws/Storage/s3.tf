@@ -8,10 +8,14 @@ resource "aws_s3_bucket" "k8s_bucket" {
   bucket        = "my-k8s-bucket-1111" # Name of the S3 bucket
   force_destroy = true
   tags = {
-    name        = "k8s-bucket"    # Tag for the bucket name
+    Name        = "k8s-bucket"    # Tag for the bucket name
+    Project     = "cloudcart"     # Tag for the project name
     Terraform   = "true"          # Tag to indicate the resource is managed by Terraform
     CreatedBy   = "Terraform"     # Tag to indicate the resource was created by Terraform
-    Environment = var.environment # Use the environment variable for tagging
+    Environment = var.environment # Use the environment variable for 
+  }
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -48,6 +52,6 @@ resource "aws_s3_bucket_public_access_block" "k8s_bucket_public_access_block" {
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
-  restrict_public_buckets = true 
+  restrict_public_buckets = true
 
 }
