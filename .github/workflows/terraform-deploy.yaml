@@ -73,3 +73,14 @@ jobs:
         env:
           TF_VAR_ssh_key_private: ~/.ssh/docker
         run: terraform apply -auto-approve tfplan
+
+      - name: Save master IP
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        run: terraform output -raw k8s_master_ip > ip.txt
+
+      - name: Upload Master IP Artifact
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: master-ip
+          path: ip.txt

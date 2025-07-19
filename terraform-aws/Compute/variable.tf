@@ -30,7 +30,7 @@ variable "worker_instance_type" {
 variable "worker_count" {
   description = "Number of worker nodes to create"
   type        = number
-  default     = 2 # Default number of worker nodes
+  default     = 3 # Default number of worker nodes
 }
 
 variable "master_disk_size" {
