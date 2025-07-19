@@ -21,10 +21,10 @@ module "Network" {
 #Load the code inside the Storage folder
 #This module sets up the storage resources, such as S3 buckets for Kubernetes data
 
-# module "Storage" {
+module "Storage" {
 
-#   source     = "./terraform-aws/Storage" #aws_region = var.aws_region # AWS region where the resources will be created
-# }
+  source     = "./terraform-aws/Storage" #aws_region = var.aws_region # AWS region where the resources will be created
+}
 
 
 terraform {
