@@ -4,8 +4,8 @@ module "Compute" {
   source = "./terraform-aws/Compute" # Path to the Compute module
 
   # Pass the necessary variables to the Compute module
-  ssh_key_public = "${path.module}/../keys/docker.pub" # Path to the public SSH key file
-  ssh_key_private = var.ssh_key_private
+  ssh_key_public    = "${path.module}/../keys/docker.pub" # Path to the public SSH key file
+  ssh_key_private   = var.ssh_key_private
   public_subnet_one = module.Network.public_subnet_one_id   # Pass the public subnet ID from the Network module
   public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
   security_group    = module.Network.security_group_id      # Pass the security group ID from the Network module   
@@ -29,11 +29,11 @@ module "Network" {
 
 terraform {
   backend "s3" {
-    bucket = "my-k8s-bucket-1111" # Use the S3 bucket name from the Storage module
-    key    = "terraform/tfstate/terraform.tfstate"  # Key for the Terraform state file in the S3 bucket
-    dynamodb_table = "tfstate-lock-table" # Use the DynamoDB table for state locking
-    region = "us-east-1" # AWS region where the S3 bucket and DynamoDB table are located
-    encrypt = true # Enable encryption for the state file in S3
+    bucket       = "my-k8s-bucket-1111"                  # Use the S3 bucket name from the Storage module
+    key          = "terraform/tfstate/terraform.tfstate" # Key for the Terraform state file in the S3 bucket
+    use_lockfile = true
+    region       = "us-east-1" # AWS region where the S3 bucket and DynamoDB table are located
+    encrypt      = true        # Enable encryption for the state file in S3
   }
 }
 
