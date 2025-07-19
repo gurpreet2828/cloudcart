@@ -18,13 +18,13 @@ module "Network" {
   source = "./terraform-aws/Network"
 }
 
-# Load the code inside the Storage folder
-# This module sets up the storage resources, such as S3 buckets for Kubernetes data
+#Load the code inside the Storage folder
+#This module sets up the storage resources, such as S3 buckets for Kubernetes data
 
-module "Storage" {
+# module "Storage" {
 
-  source     = "./terraform-aws/Storage" #aws_region = var.aws_region # AWS region where the resources will be created
-}
+#   source     = "./terraform-aws/Storage" #aws_region = var.aws_region # AWS region where the resources will be created
+# }
 
 
 terraform {
@@ -33,6 +33,7 @@ terraform {
     key    = "terraform/tfstate/terraform.tfstate"  # Key for the Terraform state file in the S3 bucket
     dynamodb_table = "tfstate-lock-table" # Use the DynamoDB table for state locking
     region = "us-east-1" # AWS region where the S3 bucket and DynamoDB table are located
+    encrypt = true # Enable encryption for the state file in S3
   }
 }
 
