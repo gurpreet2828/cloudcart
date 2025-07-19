@@ -1,21 +1,3 @@
-# this is the main Terraform configuration file for setting up a Kubernetes cluster on AWS.
-# It includes modules for compute resources, network configuration, storage, monitoring and application deployment.
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws" # Get the provider from HashiCorp's registry
-      version = "~> 6.0"        # Use version 6.0 or any newer version within 6.x (not 7.x)
-    }
-  }
-  required_version = ">= 1.0" # Require Terraform CLI version 1.0 or newer to run this configuration
-}
-
-
-provider "aws" {
-  region = var.aws_region # Use the AWS region from a variable
-}
-
 # Load the code inside the Compute folder
 # This module sets up the compute resources, such as EC2 instances for Kubernetes nodes
 module "Compute" {
@@ -38,13 +20,22 @@ module "Network" {
 
 # Load the code inside the Storage folder
 # This module sets up the storage resources, such as S3 buckets for Kubernetes data
-/*
+
 module "Storage" {
 
-  source     = "./terraform-aws/Storage"
-  aws_region = var.aws_region # AWS region where the resources will be created
+  source     = "./terraform-aws/Storage" #aws_region = var.aws_region # AWS region where the resources will be created
 }
-*/
+
+
+terraform {
+  backend "s3" {
+    bucket = "my-k8s-bucket-1111" # Use the S3 bucket name from the Storage module
+    key    = "terraform/tfstate/terraform.tfstate"  # Key for the Terraform state file in the S3 bucket
+    dynamodb_table = "tfstate-lock-table" # Use the DynamoDB table for state locking
+    region = "us-east-1" # AWS region where the S3 bucket and DynamoDB table are located
+  }
+}
+
 # this module sets up monitoring tools for the Kubernetes cluster
 # It includes tools like Prometheus and Grafana for monitoring the cluster's performance and health
 module "Monitoring" {
