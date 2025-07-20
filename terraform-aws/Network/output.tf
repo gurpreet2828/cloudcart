@@ -8,6 +8,13 @@ output "public_subnet_two_id" {
   description = "ID of the second public subnet in the Kubernetes VPC"
 }
 
+output "public_subnet_ids" {
+  description = "List of IDs of the public subnets in the Kubernetes VPC"
+  value       = [
+    aws_subnet.k8s_public_subnet_one.id, 
+    aws_subnet.k8s_public_subnet_two.id
+  ]
+}
 
 output "vpc_id" {
   value       = aws_vpc.k8s_vpc.id
