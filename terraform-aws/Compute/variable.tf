@@ -30,7 +30,7 @@ variable "worker_instance_type" {
 variable "worker_count" {
   description = "Number of worker nodes to create"
   type        = number
-  default     = 3 # Default number of worker nodes
+  default     = 4 # Default number of worker nodes
 }
 
 variable "master_disk_size" {
@@ -82,3 +82,14 @@ variable "public_subnet_two" {
   type        = list(string)
   default     = ["subnet-23456789", "subnet-34567890"] # Default subnet IDs for worker nodes, can be overridden
 }
+
+variable "public_subnet_ids" {
+  description = "List of IDs of public subnets in the Kubernetes VPC"
+  type        = list(string)
+}
+variable "vpc_id" {
+  description = "ID of the VPC where the resources will be created"
+  type        = string
+  default     = "vpc-12345678" # Default VPC ID, can be overridden
+
+} 
