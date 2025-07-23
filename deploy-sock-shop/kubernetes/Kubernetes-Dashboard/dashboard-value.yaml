@@ -1,0 +1,29 @@
+web:
+  containers:
+    ports:
+      - containerPort: 8000
+        name: http
+        protocol: TCP
+  service:
+    type: ClusterIP
+    ports:
+      - port: 80 # Expose on port 80 (HTTP)
+        targetPort: http
+        name: http
+
+app:
+  settings:
+    global:
+      authMode: "token" # Keep token auth (or "disabled" if you want no auth)
+
+kong:
+  proxy:
+    enabled: true
+    type: NodePort
+    http:
+      enabled: true # Enable HTTP proxy
+      containerPort: 8000 # Dashboard container port is 8000 (HTTP)
+      servicePort: 80 # Proxy service port on cluster is 80 (HTTP)
+      nodePort: 1180 # External NodePort (choose allowed port)
+    tls:
+      enabled: false # TLS disabled (no HTTPS)
