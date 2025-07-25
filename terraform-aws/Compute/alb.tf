@@ -56,6 +56,7 @@ resource "aws_lb_target_group" "grafana_alb_target_group" {
   }
 }
 
+/*
 #Create a kubecost target group for the ALB
 resource "aws_lb_target_group" "kubecost_alb_target_group" {
   name     = "kubecost-alb-target-group"
@@ -74,7 +75,7 @@ resource "aws_lb_target_group" "kubecost_alb_target_group" {
     Name = "kubecost-alb-target-group"
   }
 }
-
+*/
 
 # Create an Application Load Balancer (ALB)
 resource "aws_lb" "k8s_alb" {
@@ -103,6 +104,9 @@ resource "aws_lb_listener" "k8s_alb_listener" {
       status_code  = "200"
     }
   }
+  tags = {
+    Name = "k8s-alb-listener"
+  } 
 }
 
 # create a listener rule for the sockshop target group
@@ -120,6 +124,9 @@ resource "aws_lb_listener_rule" "sockshop_alb_listener_rule" {
       values = ["/*"] # Forward requests to the sockshop target group
     }
   }
+  tags = {
+    Name = "sockshop-alb-listener-rule"
+}
 }
  
     
@@ -141,6 +148,9 @@ resource "aws_lb_listener_rule" "prometheus_alb_listener_rule" {
       values = ["/prometheus/*"] # Forward requests to the prometheus target group
     }
   }
+  tags = {
+    Name = "prometheus-alb-listener-rule"
+  }
 }
 
 # create a listener rule for the grafana target group
@@ -157,6 +167,9 @@ resource "aws_lb_listener_rule" "grafana_alb_listener_rule" {
     path_pattern {
       values = ["/grafana/*"] # Forward requests to the grafana target group
     }
+  }
+  tags = {
+    Name = "grafana-alb-listener-rule"
   }
 }
 
