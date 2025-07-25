@@ -35,3 +35,12 @@ variable "deployment_app_dependency" {
   type        = any
   default     = null
 }
+
+
+variable "enable_install_grafana" {
+  description = "Flag to enable or disable the installation of Grafana."
+  type        = bool
+  default     = true
+}
+
+
