@@ -95,7 +95,6 @@ resource "null_resource" "mount_ebs_ec2" {
     ]
   }
 }
-
 # Fetch the join command from the master node and save it to a file
 resource "null_resource" "fetch_join_command" {
   depends_on = [aws_instance.k8s-master] # Ensure the master node is created before fetching the join command
