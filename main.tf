@@ -7,7 +7,7 @@ module "Compute" {
   ssh_key_public    = "${path.module}/../keys/docker.pub" # Path to the public SSH key file
   ssh_key_private   = var.ssh_key_private
   vpc_id            = module.Network.vpc_id
-  public_subnet_ids = module.Network.public_subnet_ids # Pass the public subnet IDs from the Network module
+  public_subnet_ids = module.Network.public_subnet_ids      # Pass the public subnet IDs from the Network module
   public_subnet_one = module.Network.public_subnet_one_id   # Pass the public subnet ID from the Network module
   public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
   security_group    = module.Network.security_group_id      # Pass the security group ID from the Network module   
@@ -23,12 +23,18 @@ module "Network" {
 #Load the code inside the Storage folder
 #This module sets up the storage resources, such as S3 buckets for Kubernetes data
 
-# module "Storage" {
+module "Storage" {
+  source = "./terraform-aws/Storage" 
+  #aws_region = var.aws_region # AWS region where the resources will be 
+  
+  ssh_key_private = var.ssh_key_private
+  k8s_master_dependency = module.Compute.k8s_master_instance # Dependency for the Kubernetes master node
+  k8s_master_eip = module.Compute.k8s_master_eip # Elastic IP address of the Kubernetes master node
+  fetch_join_command_dependency = module.Compute.fetch_join_command # Dependency for fetching the join command
+  monitoring_dependency = module.Monitoring # Dependency for the monitoring module
+}
 
-#   source     = "./terraform-aws/Storage" #aws_region = var.aws_region # AWS region where the resources will be created
-# }
-
-
+/*
 terraform {
   backend "s3" {
     bucket = "my-k8s-bucket-1111" # Use the S3 bucket name from the Storage module
@@ -39,7 +45,7 @@ terraform {
     encrypt      = true        # Enable encryption for the state file in S3
   }
 }
-
+*/
 # this module sets up monitoring tools for the Kubernetes cluster
 # It includes tools like Prometheus and Grafana for monitoring the cluster's performance and health
 module "Monitoring" {
