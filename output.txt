@@ -1,0 +1,40 @@
+Storage_module_status = {
+  "dynamodb_table_status" = "DISABLED"
+  "pvc_localstorage_status" = "ENABLED"
+  "s3_storage_status" = "DISABLED"
+}
+deployment_app_nodeport_url = "http://13.219.150.223:1050"
+k8s_alb_dns_name = "k8s-alb-485661847.us-east-1.elb.amazonaws.com"
+k8s_master_connection_info = {
+  "dns_name" = ""
+  "elastic_ip" = "13.219.150.223"
+  "private_ip" = "10.0.1.122"
+  "ssh_command" = "ssh -i ~/.ssh/docker ubuntu@13.219.150.223"
+  "tags" = {
+    "Name" = "k8s-master"
+  }
+}
+k8s_worker_connection_info = [
+  {
+    "dns_name" = "ec2-3-86-88-208.compute-1.amazonaws.com"
+    "elastic_ip" = "54.91.220.94"
+    "private_ip" = "10.0.2.101"
+    "ssh_command" = "ssh -i ~/.ssh/docker ubuntu@54.91.220.94"
+    "tags" = {
+      "Name" = "k8s-worker-1"
+    }
+  },
+  {
+    "dns_name" = "ec2-54-159-3-171.compute-1.amazonaws.com"
+    "elastic_ip" = "18.213.239.195"
+    "private_ip" = "10.0.2.174"
+    "ssh_command" = "ssh -i ~/.ssh/docker ubuntu@18.213.239.195"
+    "tags" = {
+      "Name" = "k8s-worker-2"
+    }
+  },
+]
+monitoring_publicip_connection_info = {
+  "grafana_url" = "http://13.219.150.223:1031"
+  "prometheus_url" = "http://13.219.150.223:1030"
+}
