@@ -14,10 +14,10 @@ resource "aws_s3_bucket" "k8s_bucket" {
     CreatedBy   = "Terraform"     # Tag to indicate the resource was created by Terraform
     Environment = var.environment # Use the environment variable for 
   }
-  lifecycle {
-    prevent_destroy = true
+  #lifecycle {
+   # prevent_destroy = true
   }
-}
+
 
 # Enable versioning for the S3 bucket
 resource "aws_s3_bucket_versioning" "k8s_bucket_versioning" {
