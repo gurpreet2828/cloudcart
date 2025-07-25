@@ -34,7 +34,7 @@ module "Storage" {
   monitoring_dependency = module.Monitoring # Dependency for the monitoring module
 }
 
-/*
+
 terraform {
   backend "s3" {
     bucket = "my-k8s-bucket-1111" # Use the S3 bucket name from the Storage module
@@ -45,7 +45,7 @@ terraform {
     encrypt      = true        # Enable encryption for the state file in S3
   }
 }
-*/
+
 # this module sets up monitoring tools for the Kubernetes cluster
 # It includes tools like Prometheus and Grafana for monitoring the cluster's performance and health
 module "Monitoring" {
