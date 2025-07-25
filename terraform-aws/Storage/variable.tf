@@ -44,3 +44,22 @@ variable "monitoring_dependency" {
   description = "Dependency for the monitoring module"
   type        = any
 }
+
+
+variable "enable_s3" {
+  description = "Enable S3 storage"
+  type        = bool
+  default     = false
+}
+
+variable "enable_pvc_localstorage" {
+  description = "Enable PVC local storage provisioning"
+  type        = bool
+  default     = true
+}
+
+variable "enable_dynamodb" {
+  description = "Enable DynamoDB for state locking"
+  type        = bool
+  default     = false
+}

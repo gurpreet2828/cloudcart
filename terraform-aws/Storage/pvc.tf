@@ -1,4 +1,5 @@
 resource "null_resource" "pvc_localstorage" {
+  count = var.enable_pvc_localstorage ? 1 : 0 # Create the resource only if enable_pvc_localstorage is true
   depends_on = [
     var.k8s_master_dependency,
     var.fetch_join_command_dependency,
