@@ -36,6 +36,20 @@ root_block_device {
     Name = "Jenkins_Instance_Root_volume"
   }
 }
+
+connection {
+  type        = "ssh"
+  user        = "ubuntu"
+  private_key = file(var.jenkins_key_private)
+  host        = aws_eip.jenkins_eip.public_ip
+}
+
+provisioner "remote-exec" {
+  inline = [
+    "echo 'Jenkins instance is ready!'",
+    "jenkins --version"
+  ]
+}
 }
 
 #Allocate an Elastic IP for the Jenkins instance
