@@ -34,8 +34,7 @@ root_block_device {
     Name = "Jenkins_Instance_Root_volume"
   }
 }
-
-#Allocate an Elastic IP for the Jenkins instance
+}
 resource "aws_eip" "jenkins_eip" {
   instance = aws_instance.jenkins_instance.id
   tags = {
@@ -44,6 +43,9 @@ resource "aws_eip" "jenkins_eip" {
 }
 
 
+resource "null_resource" "jenkins_instance_ready" {
+  depends_on = [aws_instance.jenkins_instance, aws_eip.jenkins_eip]
+  
 connection {
   type        = "ssh"
   user        = "ubuntu"
