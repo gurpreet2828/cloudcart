@@ -49,7 +49,7 @@ resource "null_resource" "jenkins_instance_ready" {
 connection {
   type        = "ssh"
   user        = "ubuntu"
-  private_key = file(var.jenkins_key_private)
+  private_key = var.jenkins_key_private
   host        = aws_eip.jenkins_eip.public_ip
 }
 
