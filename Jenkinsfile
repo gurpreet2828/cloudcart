@@ -1,28 +1,20 @@
 pipeline {
   agent any
 
-  environment {
-    AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
-    AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-  }
-
   stages {
-    stage('Terraform Init') {
+    stage('Terraform') {
       steps {
-        sh 'terraform init'
-      }
-    }
-
-    stage('Terraform Plan') {
-      steps {
-        sh 'terraform plan -out=tfplan'
-      }
-    }
-
-    stage('Terraform Apply') {
-      steps {
-        input message: 'Approve deployment?'
-        sh 'terraform apply tfplan'
+        withCredentials([
+          string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
+          string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+          sh '''
+            terraform init
+            terraform plan -out=tfplan
+          '''
+          input message: 'Approve deployment?'
+          sh 'terraform apply tfplan'
+        }
       }
     }
   }
