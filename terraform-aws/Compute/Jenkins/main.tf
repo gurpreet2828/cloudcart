@@ -5,7 +5,7 @@ provider "aws" {
 
 resource "aws_key_pair" "aws_jenkins_key" {
 key_name   = "jenkins_key"
-public_key = file("${path.module}/../keys/jenkins_key.pub")
+public_key = file("${root.module}/terraform-aws/keys/jenkins_key.pub")
 
 tags = {
   Name = "Jenkins_Key_Pair"
