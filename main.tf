@@ -57,7 +57,7 @@ terraform {
   }
 }
 
-# this module sets up monitoring tools for the Kubernetes cluster
+
 # It includes tools like Prometheus and Grafana for monitoring the cluster's performance and health
 module "Monitoring" {
   source                        = "./terraform-aws/Monitoring"       # Path to the Monitoring module
