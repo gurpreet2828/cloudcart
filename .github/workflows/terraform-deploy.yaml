@@ -45,10 +45,10 @@ jobs:
       - name: Setup SSH Key for Provisioners
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
-          chmod 600 ~/.ssh/docker
-          echo "${{ secrets.JENKINS_SSH_PRIVATE_KEYS }}" > ~/.ssh/jenkins_key
-          chmod 600 ~/.ssh/jenkins_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/docker
+          chmod 600 /home/runner/.ssh/docker
+          echo "${{ secrets.JENKINS_SSH_PRIVATE_KEYS }}" > /home/runner/.ssh/jenkins_key
+          chmod 600 /home/runner/.ssh/jenkins_key
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
