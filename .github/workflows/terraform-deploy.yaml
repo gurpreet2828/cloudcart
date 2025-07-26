@@ -47,6 +47,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
           chmod 600 ~/.ssh/docker
+          echo "${{ secrets.JENKINS_SSH_PRIVATE_KEYS }}" > ~/.ssh/jenkins_key
+          chmod 600 ~/.ssh/jenkins_key
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -72,6 +74,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         env:
           TF_VAR_ssh_key_private: ~/.ssh/docker
+          TF_VAR_jenkins_key_private: ~/.ssh/jenkins_key
         run: terraform apply -auto-approve tfplan
 
       - name: Save master IP
