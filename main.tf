@@ -45,7 +45,7 @@ module "Storage" {
   monitoring_dependency         = module.Monitoring                  # Dependency for the monitoring module
 }
 
-
+# Configure the Terraform backend 
 terraform {
   backend "s3" {
     bucket = "my-k8s-bucket-1111" # Use the S3 bucket name from the Storage module
