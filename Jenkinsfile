@@ -2,17 +2,26 @@ pipeline {
   agent any
 
   stages {
-    stage('Terraform') {
+    stage('Checkout Code') {
       steps {
-        withCredentials([
-          string(credentialsId: 'aws-credentials', variable: 'AWS_ACCESS_KEY_ID'),
-          string(credentialsId: 'aws-credentials', variable: 'AWS_SECRET_ACCESS_KEY')
-        ]) {
-          sh '''
-            terraform init
-            terraform plan -out=tfplan
-          '''
-          input message: 'Approve deployment?'
+        checkout scm
+      }
+    }
+
+    stage('Terraform Deployment') {
+      steps {
+        // Use your AWS credentials stored in Jenkins (type: AWS Credentials)
+        withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+          // Initialize Terraform
+          sh 'terraform init'
+
+          // Plan Terraform changes and save to file
+          sh 'terraform plan -out=tfplan'
+
+          // Wait for manual approval before applying changes
+          input message: 'Approve Terraform Apply?'
+
+          // Apply the Terraform plan
           sh 'terraform apply tfplan'
         }
       }
