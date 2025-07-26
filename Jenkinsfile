@@ -8,20 +8,35 @@ pipeline {
       }
     }
 
-    stage('Terraform Deployment') {
+    stage('Terraform Init') {
       steps {
-        // Use your AWS credentials stored in Jenkins (type: AWS Credentials)
-        withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-          // Initialize Terraform
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-credentials'
+        ]]) {
           sh 'terraform init'
+        }
+      }
+    }
 
-          // Plan Terraform changes and save to file
+    stage('Terraform Plan') {
+      steps {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-credentials'
+        ]]) {
           sh 'terraform plan -out=tfplan'
+        }
+      }
+    }
 
-          // Wait for manual approval before applying changes
-          input message: 'Approve Terraform Apply?'
-
-          // Apply the Terraform plan
+    stage('Terraform Apply') {
+      steps {
+        input message: 'Approve deployment?'
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-credentials'
+        ]]) {
           sh 'terraform apply tfplan'
         }
       }
