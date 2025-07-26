@@ -14,6 +14,16 @@ module "Compute" {
   aws_region        = var.aws_region                        # AWS region where the resources will be created  
 }
 
+module "Jenkins" {
+  source                = "./terraform-aws/Compute/Jenkins" # Path to the Jenkins module
+  jenkins_key_private   = var.jenkins_key_private
+  vpc_id                = module.Network.jenkins_vpc_id           # Pass the VPC ID from the Network module
+  jenkins_public_subnet = module.Network.jenkins_public_subnet_id # Pass the public subnet ID for Jenkins
+  jenkins_sg            = module.Network.jenkins_sg_id            # Pass the security group ID for Jenkins
+}
+
+
+
 # Load the code inside the Network folder
 # This module sets up the network configuration, including VPC, subnets, and security groups
 module "Network" {
@@ -40,7 +50,7 @@ terraform {
     bucket = "my-k8s-bucket-1111" # Use the S3 bucket name from the Storage module
     #bucket      = module.Storage.k8s_bucket.bucket       # Use the S3 bucket name from the Storage module
     key          = "terraform/tfstate/terraform.tfstate" # Key for the Terraform state file in the S3 bucket
-    use_lockfile = true
+    #use_lockfile = true
     region       = "us-east-1" # AWS region where the S3 bucket and DynamoDB table are located
     encrypt      = true        # Enable encryption for the state file in S3
   }
