@@ -3,8 +3,6 @@ provider "aws" {
 }
 
 
-
-
 resource "aws_key_pair" "aws_jenkins_key" {
 key_name   = "jenkins_key"
 public_key = file(var.jenkins_key_public)
@@ -37,6 +35,15 @@ root_block_device {
   }
 }
 
+#Allocate an Elastic IP for the Jenkins instance
+resource "aws_eip" "jenkins_eip" {
+  instance = aws_instance.jenkins_instance.id
+  tags = {
+    Name = "Jenkins_EIP"
+  }
+}
+
+
 connection {
   type        = "ssh"
   user        = "ubuntu"
@@ -50,12 +57,4 @@ provisioner "remote-exec" {
     "jenkins --version"
   ]
 }
-}
-
-#Allocate an Elastic IP for the Jenkins instance
-resource "aws_eip" "jenkins_eip" {
-  instance = aws_instance.jenkins_instance.id
-  tags = {
-    Name = "Jenkins_EIP"
-  }
 }
