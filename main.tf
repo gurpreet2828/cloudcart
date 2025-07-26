@@ -16,7 +16,7 @@ module "Compute" {
 
 module "Jenkins" {
   source                = "./terraform-aws/Compute/Jenkins" # Path to the Jenkins module
-  jenkins_key_public    = "${path.module}/../keys/jenkins_key.pub" # Path to the public SSH key file
+  jenkins_key_public    = "${root.module}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file
   jenkins_key_private   = var.jenkins_key_private
   vpc_id                = module.Network.jenkins_vpc_id           # Pass the VPC ID from the Network module
   jenkins_public_subnet = module.Network.jenkins_public_subnet_id # Pass the public subnet ID for Jenkins
