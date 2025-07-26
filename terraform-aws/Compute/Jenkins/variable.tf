@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "jenkins_key_public" {
   description = "Path to the public SSH key file for accessing the Jenkins instance"
   type        = string
-  default     = "~/.ssh/jenkins_key.pub" # Default path to the public SSH key
+  #default     = "/home/administrator/.ssh/jenkins_key.pub" # Default path to the public SSH key
 }
 
 variable "jenkins_key_private" {
