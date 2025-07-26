@@ -93,3 +93,4 @@ variable "vpc_id" {
   default     = "vpc-12345678" # Default VPC ID, can be overridden
 
 } 
+

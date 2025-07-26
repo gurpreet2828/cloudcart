@@ -26,7 +26,7 @@ resource "aws_instance" "k8s-master" {
   instance_type               = var.master_instance_type      # Use the instance type from a variable
   key_name                    = aws_key_pair.aws_key.key_name # Use the key pair created above
   vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
-  associate_public_ip_address = false                         # Associate a public IP address
+  associate_public_ip_address = true                         # Associate a public IP address
   subnet_id                   = var.public_subnet_one         # Use the subnet ID from a variable
   # This script installs necessary packages and configures the Kubernetes master node
   user_data = file("terraform-aws/scripts/install-k8s-master.sh")
