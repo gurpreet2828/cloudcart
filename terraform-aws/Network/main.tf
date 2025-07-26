@@ -13,7 +13,10 @@ data "aws_availability_zones" "azs" {
   state = "available"
 }
 
-#
+module "jenkins" {
+  source = "./Jenkins"
+}
+
 resource "aws_vpc" "k8s_vpc" {
   cidr_block           = "10.0.0.0/16" # Define the CIDR block for the VPC
   enable_dns_hostnames = true          # Enable DNS hostnames in the VPC

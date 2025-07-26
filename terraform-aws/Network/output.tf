@@ -44,3 +44,17 @@ output "availability_zones" {
   value       = data.aws_availability_zones.azs.names
   description = "List of availability zones in the AWS region"
 }
+
+
+# Jenkins module outputs
+output "jenkins_vpc_id" {
+  value = module.jenkins.jenkins_vpc_id
+}
+
+output "jenkins_public_subnet_id" {
+  value = module.jenkins.jenkins_public_subnet_id
+}
+
+output "jenkins_sg_id" {
+  value = module.jenkins.jenkins_sg_id
+}
