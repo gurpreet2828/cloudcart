@@ -55,3 +55,9 @@ output "Storage_module_status" {
     pvc_localstorage_status = module.Storage.pvc_localstorage_status
   }
 }
+
+output "jenkins_instance_info" {
+  description = "Connection information for the Jenkins master node"
+  value = module.Jenkins.jenkins_instance_info
+  
+}
