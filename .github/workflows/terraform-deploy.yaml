@@ -42,11 +42,12 @@ jobs:
           echo 'echo "This is a placeholder Helm install script."' >> terraform-aws/scripts/helm_install.sh
           chmod +x terraform-aws/scripts/helm_install.sh
 
-      - name: Setup SSH Key for ec2 k8 infrastructure
+      - name: Setup SSH Key for EC2 K8s Infrastructure
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
           chmod 600 ~/.ssh/docker
+
       - name: Setup SSH Key for Jenkins
         run: |
           mkdir -p ~/.ssh    
@@ -63,8 +64,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: |
-          terraform plan -out=tfplan
+        run: terraform plan -out=tfplan
 
       - name: Upload Plan File
         if: always()
@@ -77,17 +77,35 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         env:
           TF_VAR_ssh_key_private: ~/.ssh/docker
-          #TF_VAR_jenkins_key_private: ${{ secrets.JENKINS_KEY_PRIVATE }}
           TF_VAR_jenkins_key_private: ~/.ssh/jenkins_key
         run: terraform apply -auto-approve tfplan
 
-      - name: Save master IP
-        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-        run: terraform output -raw k8s_master_ip > ip.txt
+      - name: Save URLs and SSH info to file
+        run: |
+          echo "App NodePort URL: $(terraform output -raw deployment_app_nodeport_url)" > urls.txt
+          echo "Jenkins URL: $(terraform output -json jenkins_instance_info | jq -r '.jenkins_url')" >> urls.txt
+          echo "Grafana URL: $(terraform output -json monitoring_publicip_connection_info | jq -r '.grafana_url')" >> urls.txt
+          echo "Prometheus URL: $(terraform output -json monitoring_publicip_connection_info | jq -r '.prometheus_url')" >> urls.txt
+          echo "K8s ALB DNS: $(terraform output -raw k8s_alb_dns_name)" >> urls.txt
 
-      - name: Upload Master IP Artifact
+          echo "" >> urls.txt
+          echo "=== SSH Connection Details ===" >> urls.txt
+          echo "Master: ssh -i ~/.ssh/docker ubuntu@$(terraform output -raw k8s_master_ip)" >> urls.txt
+
+          echo "Worker Nodes:" >> urls.txt
+          terraform output -json k8s_worker_connection_info | \
+            jq -r '.[] | "\(.tags.Name): \(.ssh_command)"' >> urls.txt
+
+      - name: Upload URLs artifact
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         uses: actions/upload-artifact@v4
         with:
-          name: master-ip
-          path: ip.txt
+          name: terraform-urls
+          path: urls.txt
+
+      - name: Cleanup
+        run: |
+          rm -f ~/.ssh/docker
+          rm -f ~/.ssh/jenkins_key
+          rm -f tfplan
+          rm -f urls.txt
