@@ -47,7 +47,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
           chmod 600 ~/.ssh/docker
-          echo "${{ secrets.JENKINS_SSH_PRIVATE_KEY }}" > ~/.ssh/jenkins_key
+          echo "${{ secrets.JENKINS_KEY_PRIVATE }}" > ~/.ssh/jenkins_key
           chmod 600 ~/.ssh/jenkins_key
 
       - name: Setup Terraform
