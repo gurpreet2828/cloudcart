@@ -77,6 +77,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         env:
           TF_VAR_ssh_key_private: ~/.ssh/docker
+          #TF_VAR_jenkins_key_private: ${{ secrets.JENKINS_KEY_PRIVATE }}
           TF_VAR_jenkins_key_private: ~/.ssh/jenkins_key
         run: terraform apply -auto-approve tfplan
 
