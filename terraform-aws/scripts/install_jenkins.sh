@@ -25,7 +25,7 @@ sudo apt-get update -y
 
 # Install Jenkins
 sudo apt-get install -y jenkins
-jenkins_version=$(jenkins --version)
+
 
 # Start and enable Jenkins service
 sudo systemctl start jenkins
