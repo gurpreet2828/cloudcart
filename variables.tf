@@ -25,6 +25,6 @@ variable "k8s_master_eip" {
 variable "jenkins_key_private" {
   description = "Path to the private SSH key file for accessing the Jenkins instance"
   type        = string
-  default     = "/home/administrator/.ssh/jenkins_key" # Default path to the private SSH key
+  default     = "/home/administrator/.ssh/jenkins_key" 
   
 }
