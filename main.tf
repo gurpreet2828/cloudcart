@@ -14,6 +14,8 @@ module "Compute" {
   aws_region        = var.aws_region                        # AWS region where the resources will be created  
 }
 
+
+# This module sets up Jenkins for continuous integration and deployment in the Kubernetes cluster
 module "Jenkins" {
   source                = "./terraform-aws/Compute/Jenkins" # Path to the Jenkins module
   jenkins_key_public    = "${path.root}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file
