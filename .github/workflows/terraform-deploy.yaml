@@ -42,11 +42,14 @@ jobs:
           echo 'echo "This is a placeholder Helm install script."' >> terraform-aws/scripts/helm_install.sh
           chmod +x terraform-aws/scripts/helm_install.sh
 
-      - name: Setup SSH Key for Provisioners
+      - name: Setup SSH Key for ec2 k8 infrastructure
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
           chmod 600 ~/.ssh/docker
+      - name: Setup SSH Key for Jenkins
+        run: |
+          mkdir -p ~/.ssh    
           echo "${{ secrets.JENKINS_KEY_PRIVATE }}" > ~/.ssh/jenkins_key
           chmod 600 ~/.ssh/jenkins_key
 
