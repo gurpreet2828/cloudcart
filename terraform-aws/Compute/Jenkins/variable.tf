@@ -49,4 +49,3 @@ variable "jenkins_sg" {
   type        = string
   default     = "sg-123456789" # Example security group ID, replace with your desired security group
 }
-
