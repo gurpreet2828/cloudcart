@@ -28,3 +28,4 @@ variable "jenkins_key_private" {
   default     = "~/.ssh/jenkins_key" 
   
 }
+
