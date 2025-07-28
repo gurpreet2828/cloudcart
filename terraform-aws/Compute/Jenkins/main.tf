@@ -21,7 +21,7 @@ resource "aws_instance" "jenkins_instance" {
   vpc_security_group_ids      = [var.jenkins_sg]
   associate_public_ip_address = true
 
-  user_data = file("terraform-aws/scripts/install_jenkins.sh")
+  user_data = file("terraform-aws/scripts/install_jenkins_terraform.sh")
   tags = {
     Name = "Jenkins_Instance"
   }
@@ -59,9 +59,9 @@ resource "null_resource" "jenkins_instance_ready" {
       "echo 'Jenkins instance is ready!'",
       "bash -c 'until command -v java >/dev/null 2>&1; do echo Waiting for java...; sleep 5; done'",
       "bash -c 'until systemctl is-active --quiet jenkins; do echo 'Waiting...'; sleep 10; done'",
+      "bash -c 'until command -v terraform >/dev/null 2>&1; do echo Waiting for terraform...; sleep 5; done'",
       "java -version",
       "jenkins --version",
-      "sudo apt-get update && sudo apt-get upgrade -y",
       "echo 'Jenkins is installed and running!'",
 
     ]
