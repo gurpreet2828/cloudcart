@@ -14,11 +14,6 @@ resource "aws_key_pair" "aws_jenkins_key" {
 
 
 resource "aws_instance" "jenkins_instance" {
-  depends_on                  = [
-    aws_internet_gateway.jenkins_igw,
-    var.jenkins_public_subnet,
-    var.jenkins_sg
-    ]
   ami                         = var.jenkins_ami
   instance_type               = var.jenkins_instance_type
   key_name                    = aws_key_pair.aws_jenkins_key.key_name
@@ -42,6 +37,7 @@ resource "aws_instance" "jenkins_instance" {
 }
 resource "aws_eip" "jenkins_eip" {
   instance = aws_instance.jenkins_instance.id
+
   tags = {
     Name = "Jenkins_EIP"
   }
@@ -61,8 +57,11 @@ resource "null_resource" "jenkins_instance_ready" {
   provisioner "remote-exec" {
     inline = [
       "echo 'Jenkins instance is ready!'",
+      "bash -c 'until command -v java >/dev/null 2>&1; do echo Waiting for java...; sleep 5; done'",
+      "bash -c 'until systemctl is-active --quiet jenkins; do echo 'Waiting...'; sleep 10; done'",
       "java -version",
       "jenkins --version",
+      "sudo apt-get update && sudo apt-get upgrade -y",
       "echo 'Jenkins is installed and running!'",
 
     ]
