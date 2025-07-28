@@ -15,6 +15,7 @@ data "aws_availability_zones" "azs" {
 
 module "jenkins" {
   source = "./Jenkins"
+  
 }
 
 resource "aws_vpc" "k8s_vpc" {
