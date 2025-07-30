@@ -16,18 +16,6 @@ module "Compute" {
 
 
 # This module sets up Jenkins for continuous integration and deployment in the Kubernetes cluster
-module "Jenkins" {
-   # Ensure the network resources are created before Jenkins
-  source                = "./terraform-aws/Compute/Jenkins"                 # Path to the Jenkins module
-  jenkins_key_public    = "${path.root}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file
-  jenkins_key_private   = var.jenkins_key_private                           # Path to the private SSH key for Jenkins
-  vpc_id                = module.Network.jenkins_vpc_id                     # Pass the VPC ID from the Network module
-  jenkins_public_subnet = module.Network.jenkins_public_subnet_id           # Pass the public subnet ID for Jenkins
-  jenkins_sg            = module.Network.jenkins_sg_id                      # Pass the security group ID for Jenkins
-  aws_region            = var.aws_region                                    # AWS region where the Jenkins instance will be created
-
-}
-
 
 
 # Load the code inside the Network folder
@@ -85,3 +73,28 @@ module "deployment" {
   k8s_master_eip                = module.Compute.k8s_master_eip
   fetch_join_command_dependency = module.Compute.fetch_join_command
 }
+
+###################################
+#Jenkins Module
+###################################
+
+# This module sets up Jenkins for continuous integration and deployment in the Kubernetes cluster
+module "Jenkins_Compute" {
+  source = "./terraform-aws/Jenkins/Jenkins_Compute" # Path to the Jenkins module
+  jenkins_key_public = "${path.root}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file for Jenkins
+  jenkins_key_private = var.jenkins_key_private # Path to the private SSH key for Jenkins
+  vpc_id = module.Jenkins_Network.jenkins_vpc_id # Pass the VPC ID from the Network module
+  jenkins_sg = module.Jenkins_Network.jenkins_sg_id # Pass the security group ID from the Network module
+  jenkins_public_subnet = module.Jenkins_Network.jenkins_public_subnet_id #
+
+
+}
+
+module "Jenkins_Network" {
+  source = "./terraform-aws/Jenkins/Jenkins_Network" # Path to the Jenkins Network module
+}
+
+
+###############################
+#Jenkins Module End
+###############################
