@@ -56,9 +56,10 @@ output "Storage_module_status" {
   }
 }
 
+
 # output of Jenkins instance information
 output "jenkins_instance_info" {
   description = "Connection information for the Jenkins master node"
-  value = module.Jenkins.jenkins_instance_info
+  value = module.Jenkins_Compute.jenkins_instance_info
   
 }
