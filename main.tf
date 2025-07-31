@@ -1,5 +1,6 @@
 # Load the code inside the Compute folder
 # This module sets up the compute resources, such as EC2 instances for Kubernetes nodes
+
 module "Compute" {
   source = "./terraform-aws/Compute" # Path to the Compute module
 
@@ -22,15 +23,15 @@ module "Compute" {
 # This module sets up the network configuration, including VPC, subnets, and security groups
 module "Network" {
   source = "./terraform-aws/Network"
-  
+
 }
 
 #Load the code inside the Storage folder
 #This module sets up the storage resources, such as S3 buckets for Kubernetes data
 
 module "Storage" {
-  source = "./terraform-aws/Storage"
-  #aws_region = var.aws_region # AWS region where the resources will be 
+  source     = "./terraform-aws/Storage"
+  aws_region = var.aws_region # AWS region where the resources will be 
 
   ssh_key_private               = var.ssh_key_private
   k8s_master_dependency         = module.Compute.k8s_master_instance # Dependency for the Kubernetes master node
@@ -80,17 +81,23 @@ module "deployment" {
 
 # This module sets up Jenkins for continuous integration and deployment in the Kubernetes cluster
 module "Jenkins_Compute" {
+
   source = "./terraform-aws/Jenkins/Jenkins_Compute" # Path to the Jenkins module
-  jenkins_key_public = "${path.root}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file for Jenkins
-  jenkins_key_private = var.jenkins_key_private # Path to the private SSH key for Jenkins
-  vpc_id = module.Jenkins_Network.jenkins_vpc_id # Pass the VPC ID from the Network module
-  jenkins_sg = module.Jenkins_Network.jenkins_sg_id # Pass the security group ID from the Network module
-  jenkins_public_subnet = module.Jenkins_Network.jenkins_public_subnet_id #
+  providers = {
+    aws = aws
+  }
+  count                 = var.enable_jenkins ? 1 : 0                        # Enable Jenkins module based on the variable
+  jenkins_key_public    = "${path.root}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file for Jenkins
+  jenkins_key_private   = var.jenkins_key_private                           # Path to the private SSH key for Jenkins
+  vpc_id                = module.Jenkins_Network[0].jenkins_vpc_id             # Pass the VPC ID from the Network module
+  jenkins_sg            = module.Jenkins_Network[0].jenkins_sg_id              # Pass the security group ID from the Network module
+  jenkins_public_subnet = module.Jenkins_Network[0].jenkins_public_subnet_id   #
 
 
 }
 
 module "Jenkins_Network" {
+  count  = var.enable_jenkins ? 1 : 0                # Enable Jenkins Network module based on the variable
   source = "./terraform-aws/Jenkins/Jenkins_Network" # Path to the Jenkins Network module
 }
 
