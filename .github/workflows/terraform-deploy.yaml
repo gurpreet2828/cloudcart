@@ -73,6 +73,9 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
       - name: Terraform Validate
         run: terraform validate
 
@@ -87,6 +90,9 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
@@ -132,6 +138,9 @@ jobs:
         with:
           name: tfplan
           path: .
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
