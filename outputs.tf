@@ -60,6 +60,12 @@ output "Storage_module_status" {
 # output of Jenkins instance information
 output "jenkins_instance_info" {
   description = "Connection information for the Jenkins master node"
-  value = module.Jenkins_Compute.jenkins_instance_info
+  value = length(module.Jenkins_Compute) > 0 ? module.Jenkins_Compute[0].jenkins_instance_info : null
+
   
+}
+
+output "Jenkins_module_status" {
+  description = "value indicating Jenkins module is enabled or disabled"
+  value = var.enable_jenkins ? "ENABLED" : "DISABLED"
 }
