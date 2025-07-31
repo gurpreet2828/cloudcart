@@ -33,5 +33,5 @@ variable "jenkins_key_private" {
 variable "enable_jenkins" {
   description = "Flag to enable or disable the Jenkins module"
   type        = bool
-  default     = false # Default is false, can be overridden
+  default     = false 
 }
