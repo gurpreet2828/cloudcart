@@ -1,8 +1,3 @@
-provider "aws" {
-  region = var.aws_region # Use the AWS region from a variable
-}
-
-
 resource "aws_key_pair" "aws_jenkins_key" {
   key_name   = "jenkins_key"
   public_key = file("${path.root}/terraform-aws/keys/jenkins_key.pub")
