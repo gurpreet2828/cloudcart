@@ -11,15 +11,15 @@ on:
       - "terraform-aws/**"
       - "deploy-sock-shop/**"
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+
 jobs:
-  terraform:
+  init:
     runs-on: ubuntu-latest
     environment: production
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: us-east-1
 
     steps:
       - name: Checkout code
@@ -60,8 +60,32 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
+  validate:
+    needs: init
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
       - name: Terraform Validate
         run: terraform validate
+
+  plan:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
@@ -73,11 +97,42 @@ jobs:
           name: tfplan
           path: tfplan
 
+  apply:
+    needs: plan
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      TF_VAR_ssh_key_private: ~/.ssh/docker
+      TF_VAR_jenkins_key_private: ~/.ssh/jenkins_key
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Key for EC2 K8s Infrastructure
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/docker
+          chmod 600 ~/.ssh/docker
+
+      - name: Setup SSH Key for Jenkins
+        run: |
+          mkdir -p ~/.ssh    
+          echo "${{ secrets.JENKINS_KEY_PRIVATE }}" > ~/.ssh/jenkins_key
+          chmod 600 ~/.ssh/jenkins_key
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Download Plan File
+        uses: actions/download-artifact@v3
+        with:
+          name: tfplan
+          path: .
+
       - name: Terraform Apply
-        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
-        env:
-          TF_VAR_ssh_key_private: ~/.ssh/docker
-          TF_VAR_jenkins_key_private: ~/.ssh/jenkins_key
         run: terraform apply -auto-approve tfplan
 
       - name: Save URLs and SSH info to file
@@ -97,7 +152,6 @@ jobs:
             jq -r '.[] | "\(.tags.Name): \(.ssh_command)"' >> urls.txt
 
       - name: Upload URLs artifact
-        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
         uses: actions/upload-artifact@v4
         with:
           name: terraform-urls
@@ -109,3 +163,7 @@ jobs:
           rm -f ~/.ssh/jenkins_key
           rm -f tfplan
           rm -f urls.txt
+      - name: Notify Deployment Success
+        run: |
+          echo "Deployment successful! URLs and SSH info saved to urls.txt."
+          echo "You can download the URLs artifact from the Actions tab."
