@@ -29,8 +29,9 @@ variable "jenkins_key_private" {
   
 }
 
+# enable_jenkins variable to control the deployment of Jenkins
 variable "enable_jenkins" {
   description = "Flag to enable or disable the Jenkins module"
   type        = bool
-  default     = false # Default value, can be overridden
+  default     = false # Default is false, can be overridden
 }
