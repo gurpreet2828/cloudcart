@@ -10,6 +10,7 @@ on:
       - "terraform/**"
       - "terraform-aws/**"
       - "deploy-sock-shop/**"
+      - ".github/workflows/terraform-deploy.yaml"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
