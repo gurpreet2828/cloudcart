@@ -1,4 +1,4 @@
-name: Terraform Infrastructure Pipeline
+name: Terraform Init-Validate-Plan-Apply Pipeline
 
 on:
   workflow_dispatch:
@@ -61,11 +61,23 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
+  validate:
+    needs: init
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
       - name: Terraform Validate
         run: terraform validate
 
   plan:
-    needs: init
+    needs: validate
     runs-on: ubuntu-latest
     environment: production
 
