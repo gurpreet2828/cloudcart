@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: Terraform Infrastructure Pipeline
 
 on:
   workflow_dispatch:
@@ -61,7 +61,7 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
-      - name: Terraform validate
+      - name: Terraform Validate
         run: terraform validate
 
   plan:
@@ -152,6 +152,7 @@ jobs:
           rm -f ~/.ssh/jenkins_key
           rm -f tfplan
           rm -f urls.txt
+
       - name: Notify Deployment Success
         run: |
           echo "Deployment successful! URLs and SSH info saved to urls.txt."
