@@ -1,4 +1,4 @@
-name: Terraform Init-Validate-Plan-Apply Pipeline
+name: Terraform CI/CD Pipeline
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - "terraform/**"
       - "terraform-aws/**"
       - "deploy-sock-shop/**"
-      - "terraform-deploy.yaml"
+      - ".github/workflows/terraform-deploy.yaml"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
