@@ -20,7 +20,6 @@ env:
 jobs:
   init:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout code
@@ -64,7 +63,6 @@ jobs:
   validate:
     needs: init
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout code
@@ -82,7 +80,6 @@ jobs:
   plan:
     needs: validate
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout code
@@ -180,8 +177,3 @@ jobs:
           rm -f ~/.ssh/jenkins_key
           rm -f tfplan
           rm -f urls.txt
-
-      - name: Notify Deployment Success
-        run: |
-          echo "Deployment successful! URLs and SSH info saved to urls.txt."
-          echo "You can download the URLs artifact from the Actions tab."
