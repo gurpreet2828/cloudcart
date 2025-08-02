@@ -44,7 +44,7 @@ output "deployment_app_nodeport_url" {
 }
 
 output "k8s_alb_dns_name" {
-  value = module.Compute.k8s_alb_dns_name
+  value = module.ALB_Controller.k8s_alb_dns_name
 }
 
 output "Storage_module_status" {
