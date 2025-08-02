@@ -154,24 +154,19 @@ jobs:
           echo "App NodePort URL: $(terraform output -raw deployment_app_nodeport_url)" >> urls.txt
 
           # Jenkins URL (safe fallback if output not available)
-          echo "Jenkins URL: $(terraform output -raw jenkins_instance_info 2>/dev/null || echo 'N/A')" >> urls.txt
+          echo "Jenkins URL: $(terraform output -raw jenkins_instance_info 2>/dev/null || echo 'Not Deployed')" >> urls.txt
 
-          # Grafana and Prometheus URLs (safe fallback)
-          echo "Grafana URL: $(terraform output -raw grafana_url 2>/dev/null || echo 'N/A')" >> urls.txt
-          echo "Prometheus URL: $(terraform output -raw prometheus_url 2>/dev/null || echo 'N/A')" >> urls.txt
+          # Grafana and Prometheus URLs
+          echo "Monitoring Connection Info: $(terraform output -raw monitoring_connection_info 2>/dev/null || echo 'N/A')" >> urls.txt
 
           # ALB DNS
           echo "K8s ALB DNS: $(terraform output -raw k8s_alb_dns_name)" >> urls.txt
 
-          echo "" >> urls.txt
-          echo "=== SSH Connection Details ===" >> urls.txt
+          # k8s_master_connection_info
+          echo "K8s Master Connection Info: $(terraform output -raw k8s_master_connection_info 2>/dev/null || echo 'N/A')" >> urls.txt
 
-          # Master Node SSH
-          echo "Master: $(terraform output -raw k8s_master_ssh_command 2>/dev/null || echo 'N/A')" >> urls.txt
-
-          # Worker Node SSH commands
-          echo "Worker Nodes:" >> urls.txt
-          terraform output -json k8s_worker_connection_info 2>/dev/null | jq -r '.[] | "\(.tags.Name): \(.ssh_command)"' >> urls.txt || echo "N/A" >> urls.txt
+          # k8s_worker_connection_info
+          echo "K8s Worker Connection Info: $(terraform output -raw k8s_worker_connection_info 2>/dev/null || echo 'N/A')" >> urls.txt
 
       - name: Upload URLs artifact
         uses: actions/upload-artifact@v4
