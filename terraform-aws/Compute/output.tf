@@ -39,17 +39,13 @@ output "k8s_master_instance" {
   value       = aws_instance.k8s-master.id
 }
 
+output "k8s_worker_instances" {
+  description = "List of instance IDs for the Kubernetes worker nodes"
+  value       = [for instance in aws_instance.k8s-worker : instance.id]
+}
+
 output "fetch_join_command" {
   description = "Command to join worker nodes to the Kubernetes cluster"
   value       = null_resource.fetch_join_command.id
 }
 
-output "k8s_alb_dns_name" {
-  description = "DNS name of the Application Load Balancer (ALB)"
-  value       = aws_lb.k8s_alb.dns_name
-}
-
-output "public_subnet_ids" {
-  description = "List of IDs of the public subnets in the Kubernetes VPC"
-  value  = var.public_subnet_ids
-}

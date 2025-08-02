@@ -83,10 +83,6 @@ variable "public_subnet_two" {
   default     = ["subnet-23456789", "subnet-34567890"] # Default subnet IDs for worker nodes, can be overridden
 }
 
-variable "public_subnet_ids" {
-  description = "List of IDs of public subnets in the Kubernetes VPC"
-  type        = list(string)
-}
 variable "vpc_id" {
   description = "ID of the VPC where the resources will be created"
   type        = string
