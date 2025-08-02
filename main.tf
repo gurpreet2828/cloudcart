@@ -8,7 +8,6 @@ module "Compute" {
   ssh_key_public    = "${path.module}/../keys/docker.pub" # Path to the public SSH key file
   ssh_key_private   = var.ssh_key_private
   vpc_id            = module.Network.vpc_id
-  public_subnet_ids = module.Network.public_subnet_ids      # Pass the public subnet IDs from the Network module
   public_subnet_one = module.Network.public_subnet_one_id   # Pass the public subnet ID from the Network module
   public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
   security_group    = module.Network.security_group_id      # Pass the security group ID from the Network module   
@@ -53,6 +52,17 @@ terraform {
 }
 
 
+# This module sets up the Application Load Balancer (ALB) for the Kubernetes cluster
+module "ALB_Controller" {
+  source = "./terraform-aws/ALB_Controller" # Path to the ALB Controller module
+                                                          # Ensure Compute and Network modules are created before ALB_Controller
+  aws_region           = var.aws_region                      # AWS region where the ALB will be created
+  vpc_id               = module.Network.vpc_id               # Pass the VPC ID from the Network module
+  security_group       = module.Network.security_group_id    # Pass the security group ID from the Network module
+  public_subnet_ids    = module.Network.public_subnet_ids    # Pass the public subnet IDs from the Network module
+  k8s_worker_instances = module.Compute.k8s_worker_instances # Pass the list of Kubernetes worker instances from the Compute module
+}
+
 # It includes tools like Prometheus and Grafana for monitoring the cluster's performance and health
 module "Monitoring" {
   source                        = "./terraform-aws/Monitoring"       # Path to the Monitoring module
@@ -86,12 +96,12 @@ module "Jenkins_Compute" {
   providers = {
     aws = aws
   }
-  count                 = var.enable_jenkins ? 1 : 0                        # Enable Jenkins module based on the variable
-  jenkins_key_public    = "${path.root}/terraform-aws/keys/jenkins_key.pub" # Path to the public SSH key file for Jenkins
-  jenkins_key_private   = var.jenkins_key_private                           # Path to the private SSH key for Jenkins
-  vpc_id                = module.Jenkins_Network[0].jenkins_vpc_id             # Pass the VPC ID from the Network module
-  jenkins_sg            = module.Jenkins_Network[0].jenkins_sg_id              # Pass the security group ID from the Network module
-  jenkins_public_subnet = module.Jenkins_Network[0].jenkins_public_subnet_id   #
+  count                 = var.enable_jenkins ? 1 : 0                         # Enable Jenkins module based on the variable
+  jenkins_key_public    = "${path.root}/terraform-aws/keys/jenkins_key.pub"  # Path to the public SSH key file for Jenkins
+  jenkins_key_private   = var.jenkins_key_private                            # Path to the private SSH key for Jenkins
+  vpc_id                = module.Jenkins_Network[0].jenkins_vpc_id           # Pass the VPC ID from the Network module
+  jenkins_sg            = module.Jenkins_Network[0].jenkins_sg_id            # Pass the security group ID from the Network module
+  jenkins_public_subnet = module.Jenkins_Network[0].jenkins_public_subnet_id #
 
 
 }
