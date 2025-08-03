@@ -60,3 +60,34 @@ echo "Please run the kubeadm join command provided by your Kubernetes master nod
 echo "For example:"
 echo "kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash> --ignore-preflight-errors=all"
 # Note: The user should replace <master-ip>, <token>, and <hash> with the actual values from their Kubernetes master node.
+
+
+# Install AWS CLI
+# Update packages
+sudo apt update
+
+# Install dependencies
+sudo apt install -y unzip curl
+
+# Download AWS CLI v2 installer
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+# Unzip installer
+unzip awscliv2.zip
+
+# Run install script
+sudo ./aws/install
+
+# Verify installation
+aws --version
+
+# Clean up
+rm awscliv2.zip
+sudo rm -rf aws
+
+# Save log file
+BucketName="my-k8s-bucket-1111" # Replace with your S3 bucket name
+Timestamp=$(date +"%Y%m%d_%H%M%S")
+
+aws s3 cp /var/log/cloud-init.log s3://$BucketName/logs/k8s-worker-logs/cloud-init-$Timestamp.log
+aws s3 cp /var/log/cloud-init-output.log s3://$BucketName/logs/k8s-worker-logs/cloud-init-output-$Timestamp.log
