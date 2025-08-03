@@ -1,6 +1,5 @@
 #!/bin/bash
-LOG_FILE="/var/log/install-k8s-master.log"
-exec > "${LOG_FILE}" 2>&1
+exec > /var/log/install-k8s-master.log 2>&1
 Timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 # Script to install Kubernetes Control Plane on Ubuntu 24.04
 set -ex        # Exit on error
