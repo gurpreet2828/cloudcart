@@ -1,11 +1,9 @@
 #!/bin/bash
-# Script to install Kubernetes Control Plane on Ubuntu 24.04
-set -ex        # Exit on error
-# Save logs to a file
 LOG_FILE="/var/log/install-k8s-master.log"
 exec > "${LOG_FILE}" 2>&1
 Timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-
+# Script to install Kubernetes Control Plane on Ubuntu 24.04
+set -ex        # Exit on error
 
 # Update and install dependencies
 apt update && apt upgrade -y
