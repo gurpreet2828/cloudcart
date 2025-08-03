@@ -11,12 +11,12 @@ module "Compute" {
   public_subnet_one = module.Network.public_subnet_one_id   # Pass the public subnet ID from the Network module
   public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
   security_group    = module.Network.security_group_id      # Pass the security group ID from the Network module   
-  aws_region        = var.aws_region                        # AWS region where the resources will be created  
+  aws_region        = var.aws_region                        # AWS region where the resources will be created
 }
 
 
 # This module sets up Jenkins for continuous integration and deployment in the Kubernetes cluster
-
+  
 
 # Load the code inside the Network folder
 # This module sets up the network configuration, including VPC, subnets, and security groups
@@ -31,7 +31,6 @@ module "Network" {
 module "Storage" {
   source     = "./terraform-aws/Storage"
   aws_region = var.aws_region # AWS region where the resources will be 
-
   ssh_key_private               = var.ssh_key_private
   k8s_master_dependency         = module.Compute.k8s_master_instance # Dependency for the Kubernetes master node
   k8s_master_eip                = module.Compute.k8s_master_eip      # Elastic IP address of the Kubernetes master node
@@ -50,6 +49,8 @@ terraform {
     encrypt = true        # Enable encryption for the state file in S3
   }
 }
+
+
 
 
 # This module sets up the Application Load Balancer (ALB) for the Kubernetes cluster
@@ -115,3 +116,9 @@ module "Jenkins_Network" {
 ###############################
 #Jenkins Module End
 ###############################
+
+
+# This module sets up the IAM roles
+module "IAM_Roles" {
+  source = "./terraform-aws/IAM_Roles" # Path to the IAM Roles module
+}
