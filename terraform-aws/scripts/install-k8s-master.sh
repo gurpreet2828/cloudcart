@@ -3,7 +3,7 @@
 set -ex        # Exit on error
 # Save logs to a file
 LOG_FILE="/var/log/install-k8s-master.log"
-exec > >(tee -a ${LOG_FILE}) 2>&1
+exec > "${LOG_FILE}" 2>&1
 Timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 
 
