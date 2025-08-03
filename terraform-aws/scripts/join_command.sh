@@ -1,1 +1,1 @@
-sudo kubeadm join 10.0.1.226:6443 --token nlidna.0nigus1dm7p4nld6 --discovery-token-ca-cert-hash sha256:ce291a23bb79c8d1d6f55785aa71597ca443926147c2e2618457808bd3b41986  --ignore-preflight-errors=all
+sudo kubeadm join 10.0.1.21:6443 --token k254f6.oypu0klw15f1e0q0 --discovery-token-ca-cert-hash sha256:22508ccba39ec336266a3111ba76d356ae4a1c2791ce16a3d1565af9f9859446  --ignore-preflight-errors=all

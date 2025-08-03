@@ -1,15 +1,11 @@
 #!/bin/bash
+# Script to install Kubernetes Control Plane on Ubuntu 24.04
+set -ex        # Exit on error
+# Save logs to a file
+LOG_FILE="/var/log/install-k8s-master.log"
+exec > >(tee -a ${LOG_FILE}) 2>&1
+Timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 
-set -e                                 # Exit on error
-exec >>/var/log/install-k8s-master.log # Redirect stdout to a log file
-exec 2>&1                              # Redirect stderr to stdout
-
-# Check if the script is run as root, If not, re-run with sudo
-if [ "$EUID" -ne 0 ]; then # Check if the script is run as root
-  echo "If you are not logged in as root, please run the script with sudo."
-  exec sudo bash "$0" "$@" # Re-run the script with sudo
-fi
-echo "Running as root. Starting Kubernetes Control Plane setup on Ubuntu 24.04.."
 
 # Update and install dependencies
 apt update && apt upgrade -y

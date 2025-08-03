@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex                                 # Exit on error
 
 # Update and install dependencies
 apt update && apt upgrade -y

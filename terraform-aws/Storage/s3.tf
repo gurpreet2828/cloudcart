@@ -50,6 +50,7 @@ resource "aws_s3_bucket_logging" "k8s_bucket_logging" {
   target_prefix = "logs/"                        # Prefix for the log files
 }
 
+
 # public access block for the S3 bucket
 resource "aws_s3_bucket_public_access_block" "k8s_bucket_public_access_block" {
   count = var.enable_s3 ? 1 : 0 # Create the public access block configuration only if enable_s3 is true
