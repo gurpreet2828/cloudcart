@@ -1,6 +1,4 @@
 #!/bin/bash
-exec > /var/log/install-k8s-master.log 2>&1
-Timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 # Script to install Kubernetes Control Plane on Ubuntu 24.04
 set -ex        # Exit on error
 
@@ -96,3 +94,34 @@ echo "create token for worker nodes using: kubeadm token create --print-join-com
 # Note: The kubeadm join command for worker nodes should be executed separately.
 # To get the join command, run the following command on the master node:
 # kubeadm token create --print-join-command
+
+
+# Install AWS CLI
+# Update packages
+sudo apt update
+
+# Install dependencies
+sudo apt install -y unzip curl
+
+# Download AWS CLI v2 installer
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+# Unzip installer
+unzip awscliv2.zip
+
+# Run install script
+sudo ./aws/install
+
+# Verify installation
+aws --version
+
+# Clean up
+rm awscliv2.zip
+sudo rm -rf aws
+
+# Save log file
+BucketName="my-k8s-bucket-1111" # Replace with your S3 bucket name
+Timestamp=$(date +"%Y%m%d_%H%M%S")
+
+aws s3 cp /var/log/cloud-init.log s3://$BucketName/logs/k8s-master-logs/cloud-init-$Timestamp.log
+aws s3 cp /var/log/cloud-init-output.log s3://$BucketName/logs/k8s-master-logs/cloud-init-output-$Timestamp.log
