@@ -90,3 +90,8 @@ variable "vpc_id" {
 
 } 
 
+variable "instance_profile_name" {
+  description = "Name of the IAM instance profile for EC2 instances to access S3"
+  type        = string
+  default     = "EC2S3UploadInstanceProfile" # Default instance profile name, can be overridden
+}
