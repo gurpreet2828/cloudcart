@@ -11,3 +11,6 @@ provider "aws" {
   region = var.aws_region # Use the AWS region from a variable
 
 }
+
+data "aws_caller_identity" "current" {}
+  # This data source retrieves the AWS account ID of the current user
