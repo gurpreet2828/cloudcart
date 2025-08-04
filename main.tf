@@ -122,3 +122,15 @@ module "Jenkins_Network" {
 module "IAM_Roles" {
   source = "./terraform-aws/IAM_Roles" # Path to the IAM Roles module
 }
+
+module "Auto_Scaling" {
+  source = "./terraform-aws/Auto_Scaling" # Path to the Auto Scaling module
+  k8s_worker_asg_vpc_id = module.Network.vpc_id # Pass the VPC ID where the ASG will be created
+  k8s_worker_sg_id = module.Network.security_group_id # Pass the required security group ID from the Network module
+  k8s_worker_ami_id = module.Compute.k8s_worker_ami_id # Pass the AMI ID for worker nodes from the Compute module
+  k8s_worker_instance_iam_profile = module.IAM_Roles.instance_profile_name  # Pass the IAM instance profile for worker nodes
+  public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
+  sockshop_alb_target_group_arn = module.ALB_Controller.sockshop_alb_target_group_arn # Pass the target group ARN for sock-shop application
+  prometheus_alb_target_group_arn = module.ALB_Controller.prometheus_alb_target_group_arn # Pass the target group ARN for Prometheus
+  grafana_alb_target_group_arn = module.ALB_Controller.grafana_alb_target_group_arn # Pass the target
+}
