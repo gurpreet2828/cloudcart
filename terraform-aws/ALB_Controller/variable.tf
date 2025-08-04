@@ -24,5 +24,5 @@ variable "public_subnet_ids" {
 variable "k8s_worker_instances" {
   description = "List of Kubernetes worker instances"
   type        = list(string)
-  default     = [] # Default value, can be overridden
+
 }

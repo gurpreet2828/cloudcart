@@ -10,3 +10,5 @@ terraform {
 provider "aws" {
   region = var.aws_region # Use the AWS region from a variable
 }
+
+data "aws_caller_identity" "current" {}

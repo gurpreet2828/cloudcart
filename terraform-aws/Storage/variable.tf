@@ -49,7 +49,7 @@ variable "monitoring_dependency" {
 variable "enable_s3" {
   description = "Enable S3 storage"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_pvc_localstorage" {
