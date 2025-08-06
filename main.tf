@@ -16,7 +16,7 @@ module "Compute" {
 
 
 # This module sets up Jenkins for continuous integration and deployment in the Kubernetes cluster
-  
+
 
 # Load the code inside the Network folder
 # This module sets up the network configuration, including VPC, subnets, and security groups
@@ -29,8 +29,8 @@ module "Network" {
 #This module sets up the storage resources, such as S3 buckets for Kubernetes data
 
 module "Storage" {
-  source     = "./terraform-aws/Storage"
-  aws_region = var.aws_region # AWS region where the resources will be 
+  source                        = "./terraform-aws/Storage"
+  aws_region                    = var.aws_region # AWS region where the resources will be 
   ssh_key_private               = var.ssh_key_private
   k8s_master_dependency         = module.Compute.k8s_master_instance # Dependency for the Kubernetes master node
   k8s_master_eip                = module.Compute.k8s_master_eip      # Elastic IP address of the Kubernetes master node
@@ -56,7 +56,7 @@ terraform {
 # This module sets up the Application Load Balancer (ALB) for the Kubernetes cluster
 module "ALB_Controller" {
   source = "./terraform-aws/ALB_Controller" # Path to the ALB Controller module
-                                                          # Ensure Compute and Network modules are created before ALB_Controller
+  # Ensure Compute and Network modules are created before ALB_Controller
   aws_region           = var.aws_region                      # AWS region where the ALB will be created
   vpc_id               = module.Network.vpc_id               # Pass the VPC ID from the Network module
   security_group       = module.Network.security_group_id    # Pass the security group ID from the Network module
@@ -124,13 +124,16 @@ module "IAM_Roles" {
 }
 
 module "Auto_Scaling" {
-  source = "./terraform-aws/Auto_Scaling" # Path to the Auto Scaling module
-  k8s_worker_asg_vpc_id = module.Network.vpc_id # Pass the VPC ID where the ASG will be created
-  k8s_worker_sg_id = module.Network.security_group_id # Pass the required security group ID from the Network module
-  k8s_worker_ami_id = module.Compute.k8s_worker_ami_id # Pass the AMI ID for worker nodes from the Compute module
-  k8s_worker_instance_iam_profile = module.IAM_Roles.instance_profile_name  # Pass the IAM instance profile for worker nodes
-  public_subnet_two = [module.Network.public_subnet_two_id] # Pass the public subnet IDs for worker nodes from the Network module
-  sockshop_alb_target_group_arn = module.ALB_Controller.sockshop_alb_target_group_arn # Pass the target group ARN for sock-shop application
+  source                          = "./terraform-aws/Auto_Scaling"                        # Path to the Auto Scaling module
+  k8s_worker_asg_vpc_id           = module.Network.vpc_id                                 # Pass the VPC ID where the ASG will be created
+  k8s_worker_sg_id                = module.Network.security_group_id                      # Pass the required security group ID from the Network module
+  k8s_worker_ami_id               = module.Compute.k8s_worker_ami_id                      # Pass the AMI ID for worker nodes from the Compute module
+  k8s_worker_instance_iam_profile = module.IAM_Roles.instance_profile_name                # Pass the IAM instance profile for worker nodes
+  public_subnet_two               = [module.Network.public_subnet_two_id]                 # Pass the public subnet IDs for worker nodes from the Network module
+  sockshop_alb_target_group_arn   = module.ALB_Controller.sockshop_alb_target_group_arn   # Pass the target group ARN for sock-shop application
   prometheus_alb_target_group_arn = module.ALB_Controller.prometheus_alb_target_group_arn # Pass the target group ARN for Prometheus
-  grafana_alb_target_group_arn = module.ALB_Controller.grafana_alb_target_group_arn # Pass the target
+  grafana_alb_target_group_arn    = module.ALB_Controller.grafana_alb_target_group_arn    # Pass the target
+  k8s_worker_ami_dependencies     = module.Compute.k8s_worker_ami_dependencies            # Pass the dependencies for the Kubernetes worker AMI creation
+  k8s_master_dependency           = module.Compute.k8s_master_instance
 }
+
