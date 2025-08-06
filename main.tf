@@ -123,6 +123,10 @@ module "IAM_Roles" {
   source = "./terraform-aws/IAM_Roles" # Path to the IAM Roles module
 }
 
+##################################################
+#-----------Auto_Scaling-------------------------
+##################################################
+
 module "Auto_Scaling" {
   source                          = "./terraform-aws/Auto_Scaling"                        # Path to the Auto Scaling module
   k8s_worker_asg_vpc_id           = module.Network.vpc_id                                 # Pass the VPC ID where the ASG will be created
