@@ -1,4 +1,5 @@
 resource "aws_autoscaling_group" "k8s_worker_asg" {
+depends_on = [var.k8s_master_dependency]
   name_prefix = "k8s-worker-asg"
   launch_template {
     id      = aws_launch_template.k8s_worker_launch_template.id

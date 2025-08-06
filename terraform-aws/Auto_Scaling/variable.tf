@@ -57,3 +57,16 @@ variable "k8s_worker_asg_policy_name" {
   type        = string
   default     = "k8s-worker-asg-policy" # Default name for the ASG policy
 }
+
+variable "k8s_worker_ami_dependencies" {
+  description = "Dependencies for the Kubernetes worker AMI creation"
+  type        = list(any)
+  default     = [] # Default to an empty list, can be set in the module call
+}
+
+variable "k8s_master_dependency" {
+  description = "Dependency for the Kubernetes master node to ensure it is created before installing monitoring tools."
+  type        = any
+  default     = null
+
+}

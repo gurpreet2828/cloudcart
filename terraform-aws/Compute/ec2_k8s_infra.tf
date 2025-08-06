@@ -26,9 +26,9 @@ resource "aws_instance" "k8s-master" {
   instance_type               = var.master_instance_type      # Use the instance type from a variable
   key_name                    = aws_key_pair.aws_key.key_name # Use the key pair created above
   vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
-  associate_public_ip_address = true                         # Associate a public IP address
+  associate_public_ip_address = true                          # Associate a public IP address
   subnet_id                   = var.public_subnet_one         # Use the subnet ID from a variable
-  iam_instance_profile        = var.instance_profile_name # Attach the IAM instance profile for S3 access
+  iam_instance_profile        = var.instance_profile_name     # Attach the IAM instance profile for S3 access
   # This script installs necessary packages and configures the Kubernetes master node
   user_data = file("terraform-aws/scripts/install-k8s-master.sh")
   tags = {
@@ -172,16 +172,16 @@ resource "null_resource" "prepare_join_script" {
 #-----------------------------------------------------------------------
 # This resource creates multiple EC2 instances for the Kubernetes worker nodes.
 #-----------------------------------------------------------------------
-resource "aws_instance" "k8s-worker" {                                                             # Ensure the join command is fetched before creating worker nodes
-  count                       = var.worker_count                                                   # Number of worker nodes to create
-  ami                         = var.ubuntu_ami                                                     #Use the Ubuntu AMI from SSM Parameter Store
-  instance_type               = var.worker_instance_type                                           # Use the instance type from a variable
-  key_name                    = aws_key_pair.aws_key.key_name                                      # Use the key pair created above
-  vpc_security_group_ids      = [var.security_group]                                               # Use the security group ID from a variable
-  associate_public_ip_address = true                                                               # Associate a public IP address
+resource "aws_instance" "k8s-worker" {                        # Ensure the join command is fetched before creating worker nodes
+  count                       = var.worker_count              # Number of worker nodes to create
+  ami                         = var.ubuntu_ami                #Use the Ubuntu AMI from SSM Parameter Store
+  instance_type               = var.worker_instance_type      # Use the instance type from a variable
+  key_name                    = aws_key_pair.aws_key.key_name # Use the key pair created above
+  vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
+  associate_public_ip_address = true                          # Associate a public IP address
   subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]
-  iam_instance_profile        = var.instance_profile_name                                          # Attach the IAM instance profile for S3 access
-  user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh")                # User data script to initialize the worker nodes
+  iam_instance_profile        = var.instance_profile_name # Attach the IAM instance profile for S3 access
+  # user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh")                # User data script to initialize the worker nodes
 
   tags = {
     Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
@@ -208,7 +208,63 @@ resource "aws_eip" "k8s_worker_eip" {
   }
 }
 
+#......................................................................
+# This resource install kubelet, kubeadm, kubectl and aws cli and also copy the logs to s3 on each worker node
+#......................................................................
+resource "null_resource" "install-k8s-worker" {
+  count = var.worker_count
+  connection {
+    type        = "ssh"
+    host        = aws_eip.k8s_worker_eip[count.index].public_ip # Connect to each worker node's elastic IP
+    user        = "ubuntu"                                      # Use the default user for Ubuntu instances
+    private_key = file(var.ssh_key_private)                     # Path to your private SSH key file
+  }
+  # Provisioner to install necessary packages and configure the worker nodes
+  provisioner "remote-exec" {
+    inline = [
+      "set -e",                                                      # Exit on error
+      "sudo mkdir -p /home/ubuntu/cloudcart/scripts",                # Create a directory for scripts if it doesn't exist
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/", # Change ownership to the ubuntu user
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/",         # Ensure the directory is writable
+      "echo 'Directory created successfully!'"
+    ]
+  }
+  # Copy the script to install Kubernetes components to each worker node
+  provisioner "local-exec" {
+    command = <<EOT
+      echo 'Copying install-k8s-worker.sh to worker node...'
+      scp -i ${var.ssh_key_private} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${path.root}/terraform-aws/scripts/install-k8s-worker.sh ubuntu@${aws_eip.k8s_worker_eip[count.index].public_ip}:/home/ubuntu/cloudcart/scripts/install-k8s-worker.sh
+      echo 'Script copied successfully!'
+    EOT
+  }
 
+  # Ensure the script is executable on each worker node
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Setting permissions for install-k8s-worker.sh...'",
+      "set -e",                                                                           # Exit on error
+      "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/install-k8s-worker.sh",         # Ensure the script is executable
+      "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/install-k8s-worker.sh", # Change ownership to the ubuntu user
+      "echo 'Permissions set successfully!'",
+      "ls -lt /home/ubuntu/cloudcart/scripts/install-k8s-worker.sh", # List the file to confirm it exists
+      "echo 'Installing Kubernetes components on worker node...'",
+      "sudo bash /home/ubuntu/cloudcart/scripts/install-k8s-worker.sh",                                    # Execute the script to install Kubernetes components
+      "bash -c 'until command -v kubectl >/dev/null 2>&1; do echo Waiting for kubectl...; sleep 5; done'", # Wait until kubectl is available
+      "kubectl version --client",
+      "bash -c 'until command -v kubeadm >/dev/null 2>&1; do echo Waiting for kubeadm...; sleep 5; done'", # Wait until kubeadm is available
+      "kubeadm version",
+      "bash -c 'until command -v kubelet >/dev/null 2>&1; do echo Waiting for kubelet...; sleep 5; done'", # Wait until kubelet is available
+      "kubelet --version ",                                                                                  # Display the Kubernetes client version to confirm installation
+      "echo 'Kubernetes components installed successfully!'",
+      "bash -c 'until command -v aws >/dev/null 2>&1; do echo Waiting for AWS CLI...; sleep 5; done'", # Wait until AWS CLI is available
+      "aws --version",                                                                                 # Display the AWS CLI version to confirm installation
+      "echo 'AWS CLI installed successfully!'"
+
+    ]
+
+  }
+
+}
 #------------------------------------------------------------------------
 # This resource fetches the join command from local machine and copies it to each worker node
 #------------------------------------------------------------------------
@@ -244,10 +300,10 @@ resource "null_resource" "fetch_worker_join_command" {
   provisioner "remote-exec" {
     inline = [
       "echo 'Executing join command on worker node...'",
-      "set -ex",
+      "set -e",
       "sudo chmod -R u+rxw /home/ubuntu/cloudcart/scripts/join_command.sh",         # Ensure the directory is writable
       "sudo chown -R ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh", # Change ownership to the ubuntu user                                                # Exit on error
-      "sudo sh /home/ubuntu/cloudcart/scripts/join_command.sh",                     # Execute the join command to join the worker node to the cluster
+      "sudo bash /home/ubuntu/cloudcart/scripts/join_command.sh",                   # Execute the join command to join the worker node to the cluster
       "echo 'Worker node joined to the cluster successfully!'"
     ]
   }
@@ -256,7 +312,7 @@ resource "null_resource" "fetch_worker_join_command" {
 
 # This resource verifies that the worker nodes have successfully joined the Kubernetes cluster.
 resource "null_resource" "verify_worker_nodes" {
-  depends_on = [aws_instance.k8s-worker, aws_instance.k8s-master, null_resource.fetch_join_command, null_resource.fetch_worker_join_command] # Ensure master and worker nodes are created before verifying
+  depends_on = [aws_instance.k8s-worker, null_resource.install-k8s-worker, null_resource.fetch_join_command, null_resource.fetch_worker_join_command] # Ensure master and worker nodes are created before verifying
 
   connection {
     type        = "ssh"
@@ -269,7 +325,7 @@ resource "null_resource" "verify_worker_nodes" {
   provisioner "remote-exec" {
     inline = [
       "echo 'Verifying worker nodes in the Kubernetes cluster...'",
-      "set -ex",
+      "set -e",
       "kubectl get nodes -o wide", # Display the status of all nodes
       "echo 'Worker nodes verification completed!'"
 

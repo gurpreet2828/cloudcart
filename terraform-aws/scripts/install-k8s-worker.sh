@@ -1,7 +1,8 @@
 #!/bin/bash
-
-set -ex                                 # Exit on error
-
+# setup a log file with a timestamp
+Timestamp=$(date +%Y%m%d-%H%M%S)
+set -euo pipefail                                 # Exit on error
+echo "Starting Kubernetes worker node setup at $Timestamp"
 # Update and install dependencies
 apt update && apt upgrade -y
 apt install -y apt-transport-https ca-certificates curl gnupg lsb-release software-properties-common
@@ -64,10 +65,10 @@ echo "kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-ha
 
 # Install AWS CLI
 # Update packages
-sudo apt update
+apt update -y
 
 # Install dependencies
-sudo apt install -y unzip curl
+apt install -y unzip curl
 
 # Download AWS CLI v2 installer
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -76,18 +77,31 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 
 # Run install script
-sudo ./aws/install
+./aws/install
 
 # Verify installation
 aws --version
 
-# Clean up
-rm awscliv2.zip
-sudo rm -rf aws
+echo "Installation complete, verifying installed tools..."
+
+which aws
+aws --version
+
+which kubectl
+kubectl version --client
+
+which kubeadm
+kubeadm version
+
+echo "All tools installed successfully."
+
 
 # Save log file
-BucketName="my-k8s-bucket-1111" # Replace with your S3 bucket name
-Timestamp=$(date +"%Y%m%d_%H%M%S")
+#BucketName="my-k8s-bucket-1111" # Replace with your S3 bucket name
 
-aws s3 cp /var/log/cloud-init.log s3://$BucketName/logs/k8s-worker-logs/cloud-init-$Timestamp.log
-aws s3 cp /var/log/cloud-init-output.log s3://$BucketName/logs/k8s-worker-logs/cloud-init-output-$Timestamp.log
+#echo "Saving installation logs to S3 bucket: $BucketName"
+#Timestamp=$(date +%Y%m%d-%H%M%S)
+#aws s3 cp /var/log/cloud-init.log s3://$BucketName/logs/k8s-worker-logs/cloud-init-$Timestamp.log
+#aws s3 cp /var/log/cloud-init-output.log s3://$BucketName/logs/k8s-worker-logs/cloud-init-output-$Timestamp.log
+echo "Installation logs saved successfully."
+exit 0

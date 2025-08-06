@@ -53,3 +53,8 @@ output "k8s_worker_ami_id" {
   description = "AMI ID for the Kubernetes worker nodes"
   value       = aws_ami_from_instance.k8s_worker_ami.id
 }
+
+output "k8s_worker_ami_dependencies" {
+  description = "ami dependent"
+  value       = null
+}

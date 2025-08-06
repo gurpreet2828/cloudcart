@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script to install Kubernetes Control Plane on Ubuntu 24.04
-set -ex        # Exit on error
+set -e        # Exit on error
 
 # Update and install dependencies
 apt update && apt upgrade -y
@@ -98,10 +98,10 @@ echo "create token for worker nodes using: kubeadm token create --print-join-com
 
 # Install AWS CLI
 # Update packages
-sudo apt update
+apt update -y
 
 # Install dependencies
-sudo apt install -y unzip curl
+apt install -y unzip curl
 
 # Download AWS CLI v2 installer
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -110,7 +110,7 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 
 # Run install script
-sudo ./aws/install
+./aws/install
 
 # Verify installation
 aws --version
