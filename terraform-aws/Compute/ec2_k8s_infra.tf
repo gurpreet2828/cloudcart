@@ -181,7 +181,7 @@ resource "aws_instance" "k8s-worker" {                        # Ensure the join 
   associate_public_ip_address = true                          # Associate a public IP address
   subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]
   iam_instance_profile        = var.instance_profile_name # Attach the IAM instance profile for S3 access
-  # user_data                   = file("terraform-aws/scripts/install-k8s-worker.sh")                # User data script to initialize the worker nodes
+  user_data                   = file("terraform-aws/scripts/install_awscli.sh")                # User data script to initialize the worker nodes
 
   tags = {
     Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
@@ -254,7 +254,7 @@ resource "null_resource" "install-k8s-worker" {
       "bash -c 'until command -v kubeadm >/dev/null 2>&1; do echo Waiting for kubeadm...; sleep 5; done'", # Wait until kubeadm is available
       "kubeadm version",
       "bash -c 'until command -v kubelet >/dev/null 2>&1; do echo Waiting for kubelet...; sleep 5; done'", # Wait until kubelet is available
-      "kubelet --version ",                                                                                  # Display the Kubernetes client version to confirm installation
+      "kubelet --version",                                                                                  # Display the Kubernetes client version to confirm installation
       "echo 'Kubernetes components installed successfully!'",
       "bash -c 'until command -v aws >/dev/null 2>&1; do echo Waiting for AWS CLI...; sleep 5; done'", # Wait until AWS CLI is available
       "aws --version",                                                                                 # Display the AWS CLI version to confirm installation

@@ -1,1 +1,1 @@
-sudo kubeadm join 10.0.1.186:6443 --token rurlda.ibsc3d9um7h3l4yg --discovery-token-ca-cert-hash sha256:73d50a015c98725920faa9b2d5bd3077abd74d0f32c40de9ff25974f75024bb0  --ignore-preflight-errors=all
+sudo kubeadm join 10.0.1.191:6443 --token n5syi8.akjw977i4j4k2iqe --discovery-token-ca-cert-hash sha256:4bbf3f93420978bfcab55bb9c44edcec48f06e0ad5ee79ace6fd253c49b3be55  --ignore-preflight-errors=all

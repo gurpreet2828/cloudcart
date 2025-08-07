@@ -63,3 +63,9 @@ variable "enable_dynamodb" {
   type        = bool
   default     = false
 }
+
+variable "compute_dependency" {
+  description = "Dependency for Compute Module"
+  type = any
+  
+}

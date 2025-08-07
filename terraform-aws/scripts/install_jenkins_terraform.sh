@@ -56,4 +56,5 @@ fi
 # -------------------------
 # 4. Final system update (optional)
 # -------------------------
+sudo apt-get update -y
 sudo apt-get upgrade -y

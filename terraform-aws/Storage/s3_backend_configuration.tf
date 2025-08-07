@@ -1,4 +1,5 @@
 resource "aws_s3_object" "k8s_join_command" {
+  depends_on = [var.compute_dependency]
   bucket = "my-k8s-bucket-1111"                            # S3 bucket name
   key    = "terraform-aws/scripts/join_command.sh"         # S3 object key (relative path, no leading slash)
   source = "${path.root}/terraform-aws/scripts/join_command.sh"  # Local file path

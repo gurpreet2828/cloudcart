@@ -7,24 +7,18 @@ set -ex
 
 # Update system and install prerequisites
 apt-get update -y
-apt install -y unzip curl
 
-# Download AWS CLI v2 installer
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+# Enable IP forwarding for Kubernetes networking
+echo "Enabling IP forwarding..."
+sudo sysctl -w net.ipv4.ip_forward=1
+echo 'net.ipv4.ip_forward=1' | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
 
-# Unzip installer
-unzip awscliv2.zip
-
-# Run install script
-./aws/install
-
-# Verify AWS CLI is available
-until command -v aws >/dev/null 2>&1; do echo "Waiting for AWS CLI..."; sleep 5; done
+echo "Checking installation...."
 aws --version
-echo "----AWS CLI Installed Successfully----"
-
-# Create script directory
-mkdir -p /home/ubuntu/cloudcart/scripts
+kubectl version --client
+kubeadm version
+kubelet --version
 
 # Download join command from S3
 echo "Downloading join command script from S3..."
@@ -35,14 +29,14 @@ sudo chmod +x /home/ubuntu/cloudcart/scripts/join_command.sh
 sudo chown ubuntu:ubuntu /home/ubuntu/cloudcart/scripts/join_command.sh
 
 # Execute the join command script
-sudo -u ubuntu bash /home/ubuntu/cloudcart/scripts/join_command.sh
+sudo bash /home/ubuntu/cloudcart/scripts/join_command.sh
 EOF
 }
 
 
 
 resource "aws_launch_template" "k8s_worker_launch_template" {
-  depends_on    = [var.k8s_worker_ami_dependencies] # Ensure the AMI is created before the launch template
+  depends_on    = [var.k8s_worker_ami_dependencies, var.k8s_master_dependency] # Ensure the AMI is created before the launch template
   name_prefix   = "k8s-worker-ami-launch-template"
   description   = "Launch template for Kubernetes worker nodes with AMI from instance for auto scaling"
   image_id      = var.k8s_worker_ami_id
