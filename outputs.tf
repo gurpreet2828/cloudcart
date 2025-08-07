@@ -6,8 +6,6 @@ output "k8s_master_connection_info" {
 
 }
 
-
-
 output "k8s_worker_connection_info" {
   description = "Connection information for the Kubernetes worker nodes"
   value       = module.Compute.k8s_worker_connection_info
@@ -69,3 +67,4 @@ output "Jenkins_module_status" {
   description = "value indicating Jenkins module is enabled or disabled"
   value = var.enable_jenkins ? "ENABLED" : "DISABLED"
 }
+
