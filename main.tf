@@ -36,6 +36,8 @@ module "Storage" {
   k8s_master_eip                = module.Compute.k8s_master_eip      # Elastic IP address of the Kubernetes master node
   fetch_join_command_dependency = module.Compute.fetch_join_command  # Dependency for fetching the join command
   monitoring_dependency         = module.Monitoring                  # Dependency for the monitoring module
+  compute_dependency            = module.Compute
+
 }
 
 # Configure the Terraform backend 
