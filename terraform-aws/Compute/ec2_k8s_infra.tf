@@ -11,7 +11,7 @@ provider "aws" {
 resource "aws_key_pair" "aws_key" {
   key_name = "k8s"
   # public_key = file(var.ssh_key_public) # Path to your public SSH key file
-  public_key = file("${path.module}/../keys/docker.pub") # Path to your public SSH key file
+  public_key = file("${path.module}/../keys/k8s-key.pub") # Path to your public SSH key file
 }
 
 # This Terraform configuration sets up the compute resources for a Kubernetes cluster on AWS.
