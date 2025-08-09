@@ -8,7 +8,7 @@ variable "aws_region" {
 variable "ssh_key_private" {
   description = "Path to the private SSH key for accessing the instances"
   type        = string
-  default     = "~/.ssh/docker" # Default path, can be overridden
+  default     = "~/.ssh/k8s-key" # Default path, can be overridden
 
 }
 
