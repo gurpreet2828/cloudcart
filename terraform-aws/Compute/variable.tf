@@ -88,7 +88,7 @@ variable "vpc_id" {
   type        = string
   default     = "vpc-12345678" # Default VPC ID, can be overridden
 
-} 
+}
 
 variable "instance_profile_name" {
   description = "Name of the IAM instance profile for EC2 instances to access S3"

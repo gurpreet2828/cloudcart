@@ -2,7 +2,7 @@ variable "aws_region" {
   description = "The AWS region to deploy resources in"
   type        = string
   default     = "us-east-1" # Default region can be changed as needed
-  
+
 }
 
 variable "vpc_id" {
@@ -13,7 +13,7 @@ variable "vpc_id" {
 variable "security_group" {
   description = "The security group to associate with the ALB"
   type        = string
-  
+
 }
 
 variable "public_subnet_ids" {

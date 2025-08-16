@@ -6,15 +6,15 @@
 
 # The bucket name is dynamically generated using the AWS account ID to ensure uniqueness
 resource "aws_s3_bucket" "k8s_bucket" {
-  count = var.enable_s3 ? 1 : 0 # Create the bucket only if enable_s3 is true
-  bucket        = "cloudcart-bucket-${data.aws_caller_identity.current.account_id}"  # Name of the S3 bucket
+  count         = var.enable_s3 ? 1 : 0                                             # Create the bucket only if enable_s3 is true
+  bucket        = "cloudcart-bucket-${data.aws_caller_identity.current.account_id}" # Name of the S3 bucket
   force_destroy = true
   tags = {
-    Name        = "cloudcart-bucket"    # Tag for the bucket name
-    Project     = "cloudcart"     # Tag for the project name
-    Terraform   = "true"          # Tag to indicate the resource is managed by Terraform
-    CreatedBy   = "Terraform"     # Tag to indicate the resource was created by Terraform
-    Environment = var.environment # Use the environment variable for 
+    Name        = "cloudcart-bucket" # Tag for the bucket name
+    Project     = "cloudcart"        # Tag for the project name
+    Terraform   = "true"             # Tag to indicate the resource is managed by Terraform
+    CreatedBy   = "Terraform"        # Tag to indicate the resource was created by Terraform
+    Environment = var.environment    # Use the environment variable for 
   }
   #lifecycle {
   # prevent_destroy = true
@@ -23,7 +23,7 @@ resource "aws_s3_bucket" "k8s_bucket" {
 
 # Enable versioning for the S3 bucket
 resource "aws_s3_bucket_versioning" "k8s_bucket_versioning" {
-  count = var.enable_s3 ? 1 : 0 # Create the versioning configuration only if enable_s3 is true
+  count  = var.enable_s3 ? 1 : 0                    # Create the versioning configuration only if enable_s3 is true
   bucket = aws_s3_bucket.k8s_bucket[count.index].id # Reference the S3 bucket created above
   # Enable versioning for the S3 bucket
   versioning_configuration {
@@ -34,7 +34,7 @@ resource "aws_s3_bucket_versioning" "k8s_bucket_versioning" {
 
 # Enable server-side encryption for the S3 bucket
 resource "aws_s3_bucket_server_side_encryption_configuration" "k8s_bucket_encryption" {
-  count = var.enable_s3 ? 1 : 0 # Create the encryption configuration only if enable_s3 is true
+  count  = var.enable_s3 ? 1 : 0                    # Create the encryption configuration only if enable_s3 is true
   bucket = aws_s3_bucket.k8s_bucket[count.index].id # Reference the S3 bucket created above
 
   rule {
@@ -45,7 +45,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "k8s_bucket_encryp
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "k8s_bucket_lifecycle" {
-  count = var.enable_s3 ? 1 : 0 # Create the lifecycle configuration only if enable_s3 is true
+  count  = var.enable_s3 ? 1 : 0                    # Create the lifecycle configuration only if enable_s3 is true
   bucket = aws_s3_bucket.k8s_bucket[count.index].id # Reference the S3 bucket created above
 
   rule {
@@ -59,12 +59,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "k8s_bucket_lifecycle" {
       days = 7 # Delete objects after 7 days
     }
   }
-  
+
 }
 
 # public access block for the S3 bucket
 resource "aws_s3_bucket_public_access_block" "k8s_bucket_public_access_block" {
-  count = var.enable_s3 ? 1 : 0 # Create the public access block configuration only if enable_s3 is true
+  count                   = var.enable_s3 ? 1 : 0                    # Create the public access block configuration only if enable_s3 is true
   bucket                  = aws_s3_bucket.k8s_bucket[count.index].id # Reference the S3 bucket created above
   block_public_acls       = true
   block_public_policy     = true

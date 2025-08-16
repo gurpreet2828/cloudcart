@@ -19,7 +19,7 @@ output "monitoring_publicip_connection_info" {
     prometheus_url = module.Monitoring.prometheus_nodeport_url
     grafana_url    = module.Monitoring.grafana_nodeport_url
   }
- # This module should return a map with keys: prometheus_url, grafana_url, ssh_command{
+  # This module should return a map with keys: prometheus_url, grafana_url, ssh_command{
 }
 
 # output of Prometheus UI exposed via NodePort on the master
@@ -48,8 +48,8 @@ output "k8s_alb_dns_name" {
 output "Storage_module_status" {
   description = "value indicating Storage module is enabled or disabled"
   value = {
-    s3_storage_status     = module.Storage.s3_storage_status
-    dynamodb_table_status = module.Storage.dynamodb_table_status
+    s3_storage_status       = module.Storage.s3_storage_status
+    dynamodb_table_status   = module.Storage.dynamodb_table_status
     pvc_localstorage_status = module.Storage.pvc_localstorage_status
   }
 }
@@ -58,13 +58,18 @@ output "Storage_module_status" {
 # output of Jenkins instance information
 output "jenkins_instance_info" {
   description = "Connection information for the Jenkins master node"
-  value = length(module.Jenkins_Compute) > 0 ? module.Jenkins_Compute[0].jenkins_instance_info : null
+  value       = length(module.Jenkins_Compute) > 0 ? module.Jenkins_Compute[0].jenkins_instance_info : null
 
-  
+
 }
 
 output "Jenkins_module_status" {
   description = "value indicating Jenkins module is enabled or disabled"
-  value = var.enable_jenkins ? "ENABLED" : "DISABLED"
+  value       = var.enable_jenkins ? "ENABLED" : "DISABLED"
 }
 
+output "Auto_Scaling_module_status" {
+  description = "value indicating Auto Scaling module is enable or disable"
+  value       = var.enable_Auto_Scaling ? "ENABLED" : "DISABLED"
+
+}

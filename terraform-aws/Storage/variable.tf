@@ -66,6 +66,6 @@ variable "enable_dynamodb" {
 
 variable "compute_dependency" {
   description = "Dependency for Compute Module"
-  type = any
-  
+  type        = any
+
 }

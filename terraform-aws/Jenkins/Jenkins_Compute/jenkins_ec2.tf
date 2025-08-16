@@ -15,7 +15,7 @@ resource "aws_instance" "jenkins_instance" {
   subnet_id                   = var.jenkins_public_subnet
   vpc_security_group_ids      = [var.jenkins_sg]
   associate_public_ip_address = true
-  user_data = file("${path.root}/terraform-aws/scripts/install_jenkins_terraform.sh") # Path to the user data script for Jenkins installation
+  user_data                   = file("${path.root}/terraform-aws/scripts/install_jenkins_terraform.sh") # Path to the user data script for Jenkins installation
   #user_data = file("terraform-aws/scripts/install_jenkins_terraform.sh")
   tags = {
     Name = "Jenkins_Instance"

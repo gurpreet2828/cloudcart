@@ -1,9 +1,9 @@
 resource "aws_ami_from_instance" "k8s_worker_ami" {
-  depends_on              = [null_resource.install-k8s-worker, aws_instance.k8s-worker, aws_instance.k8s-master]  # Ensure the instance is created before creating the AMI
+  depends_on              = [null_resource.install-k8s-worker, aws_instance.k8s-worker, aws_instance.k8s-master] # Ensure the instance is created before creating the AMI
   name                    = "k8s-worker-ami"
   source_instance_id      = aws_instance.k8s-worker[0].id # Instance ID of the Kubernetes worker node
   snapshot_without_reboot = true                          # Create the AMI without rebooting the instance
- 
+
 
   tags = {
     Name      = "K8S Worker AMI"

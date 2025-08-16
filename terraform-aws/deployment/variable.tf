@@ -28,5 +28,11 @@ variable "k8s_master_eip" {
 variable "ssh_key_private" {
   description = "Path to the private SSH key file for accessing the instances."
   type        = string
-  default     = "/home/administrator/.ssh/docker"
+  default     = "/home/administrator/.ssh/k8s-key"
+}
+
+variable "compute_dependency" {
+  description = "deployment of app depends on compute module"
+  type        = any
+
 }

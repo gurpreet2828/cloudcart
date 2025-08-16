@@ -13,4 +13,4 @@ provider "aws" {
 }
 
 data "aws_caller_identity" "current" {}
-  # This data source retrieves the AWS account ID of the current user
+# This data source retrieves the AWS account ID of the current user

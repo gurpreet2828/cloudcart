@@ -15,15 +15,20 @@ variable "ssh_key_private" {
 variable "jenkins_key_private" {
   description = "Path to the private SSH key file for accessing the Jenkins instance"
   type        = string
-  default     = "~/.ssh/jenkins_key" 
-  
+  default     = "~/.ssh/jenkins_key"
+
 }
 
 # enable_jenkins variable to control the deployment of Jenkins
 variable "enable_jenkins" {
   description = "Flag to enable or disable the Jenkins module"
   type        = bool
-  default     = false 
+  default     = false
 }
 
+variable "enable_Auto_Scaling" {
+  description = "Flag to enable or disable Auto_Scaling"
+  type        = bool
+  default     = true
+}
 

@@ -14,13 +14,13 @@ resource "aws_iam_role" "ec2_s3_upload_role" {
     }]
   })
 
-tags = {
-    Name        = "EC2S3UploadRole" # Tag for the role name
-    Project     = "cloudcart"      # Tag for the project name
-    Terraform   = "true"           # Tag to indicate the resource is managed by Terraform
-    CreatedBy   = "Terraform"      # Tag to indicate the resource was created by Terraform
-    owner       = "Gurpreet"          # Tag for the owner of the resource
-}
+  tags = {
+    Name      = "EC2S3UploadRole" # Tag for the role name
+    Project   = "cloudcart"       # Tag for the project name
+    Terraform = "true"            # Tag to indicate the resource is managed by Terraform
+    CreatedBy = "Terraform"       # Tag to indicate the resource was created by Terraform
+    owner     = "Gurpreet"        # Tag for the owner of the resource
+  }
 }
 # Attach the AmazonS3FullAccess policy to the role
 resource "aws_iam_role_policy_attachment" "s3_full_access_attach" {
@@ -51,6 +51,6 @@ resource "aws_iam_role_policy" "ec2_s3_upload_policy" {
 
 # create an instance profile for the role
 resource "aws_iam_instance_profile" "ec2_s3_upload_instance_profile" {
-    name = "EC2S3UploadInstanceProfile"
-    role = aws_iam_role.ec2_s3_upload_role.id
+  name = "EC2S3UploadInstanceProfile"
+  role = aws_iam_role.ec2_s3_upload_role.id
 }

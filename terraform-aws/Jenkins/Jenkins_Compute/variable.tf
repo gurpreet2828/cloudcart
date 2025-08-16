@@ -17,9 +17,9 @@ variable "jenkins_key_private" {
 }
 
 variable "jenkins_ami" {
-    description = "AMI ID for the Jenkins instance"
-    type        = string
-    default     = "ami-020cba7c55df1f615" # Example AMI, replace with your desired AMI
+  description = "AMI ID for the Jenkins instance"
+  type        = string
+  default     = "ami-020cba7c55df1f615" # Example AMI, replace with your desired AMI
 }
 
 variable "jenkins_instance_type" {

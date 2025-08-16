@@ -86,6 +86,8 @@ module "deployment" {
   k8s_master_dependency         = module.Compute.k8s_master_instance
   k8s_master_eip                = module.Compute.k8s_master_eip
   fetch_join_command_dependency = module.Compute.fetch_join_command
+  compute_dependency            = module.Compute
+
 }
 
 ###################################
@@ -130,7 +132,9 @@ module "IAM_Roles" {
 ##################################################
 
 module "Auto_Scaling" {
-  source                          = "./terraform-aws/Auto_Scaling"                        # Path to the Auto Scaling module
+
+  source                          = "./terraform-aws/Auto_Scaling" # Path to the Auto Scaling module
+  count                           = var.enable_Auto_Scaling ? 1 : 0
   k8s_worker_asg_vpc_id           = module.Network.vpc_id                                 # Pass the VPC ID where the ASG will be created
   k8s_worker_sg_id                = module.Network.security_group_id                      # Pass the required security group ID from the Network module
   k8s_worker_ami_id               = module.Compute.k8s_worker_ami_id                      # Pass the AMI ID for worker nodes from the Compute module

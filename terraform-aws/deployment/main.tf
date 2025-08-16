@@ -1,8 +1,6 @@
 resource "null_resource" "deployment_app" {
   depends_on = [
-    var.k8s_master_dependency,
-    var.fetch_join_command_dependency
-
+    var.compute_dependency
   ]
   connection {
     type        = "ssh"
@@ -41,7 +39,7 @@ resource "null_resource" "deployment_app" {
       "echo 'Waiting for sock-shop pods to be ready...'",
       "kubectl wait --for=condition=Ready pods --all --namespace=sock-shop --timeout=300s",
       "kill $WATCH_PID || true", # cleanup background watch safely
-      "echo 'Final pod status:'", 
+      "echo 'Final pod status:'",
       "kubectl get pods -n sock-shop",
       "echo 'All sock-shop pods are ready and sock-shop application deployed...'"
     ]

@@ -172,7 +172,8 @@ resource "null_resource" "prepare_join_script" {
 #-----------------------------------------------------------------------
 # This resource creates multiple EC2 instances for the Kubernetes worker nodes.
 #-----------------------------------------------------------------------
-resource "aws_instance" "k8s-worker" {                        # Ensure the join command is fetched before creating worker nodes
+resource "aws_instance" "k8s-worker" {
+  depends_on                  = [aws_instance.k8s-master]     # Ensure the join command is fetched before creating worker nodes
   count                       = var.worker_count              # Number of worker nodes to create
   ami                         = var.ubuntu_ami                #Use the Ubuntu AMI from SSM Parameter Store
   instance_type               = var.worker_instance_type      # Use the instance type from a variable
@@ -180,8 +181,8 @@ resource "aws_instance" "k8s-worker" {                        # Ensure the join 
   vpc_security_group_ids      = [var.security_group]          # Use the security group ID from a variable
   associate_public_ip_address = true                          # Associate a public IP address
   subnet_id                   = var.public_subnet_two[count.index % length(var.public_subnet_two)]
-  iam_instance_profile        = var.instance_profile_name # Attach the IAM instance profile for S3 access
-  user_data                   = file("terraform-aws/scripts/install_awscli.sh")                # User data script to initialize the worker nodes
+  iam_instance_profile        = var.instance_profile_name                       # Attach the IAM instance profile for S3 access
+  user_data                   = file("terraform-aws/scripts/install_awscli.sh") # User data script to initialize the worker nodes
 
   tags = {
     Name = "k8s-worker-${count.index + 1}" # Unique name for each worker node
@@ -212,7 +213,7 @@ resource "aws_eip" "k8s_worker_eip" {
 # This resource install kubelet, kubeadm, kubectl and aws cli and also copy the logs to s3 on each worker node
 #......................................................................
 resource "null_resource" "install-k8s-worker" {
-  count = var.worker_count
+  count = length(aws_instance.k8s-worker)
   connection {
     type        = "ssh"
     host        = aws_eip.k8s_worker_eip[count.index].public_ip # Connect to each worker node's elastic IP
@@ -254,7 +255,7 @@ resource "null_resource" "install-k8s-worker" {
       "bash -c 'until command -v kubeadm >/dev/null 2>&1; do echo Waiting for kubeadm...; sleep 5; done'", # Wait until kubeadm is available
       "kubeadm version",
       "bash -c 'until command -v kubelet >/dev/null 2>&1; do echo Waiting for kubelet...; sleep 5; done'", # Wait until kubelet is available
-      "kubelet --version",                                                                                  # Display the Kubernetes client version to confirm installation
+      "kubelet --version",                                                                                 # Display the Kubernetes client version to confirm installation
       "echo 'Kubernetes components installed successfully!'",
       "bash -c 'until command -v aws >/dev/null 2>&1; do echo Waiting for AWS CLI...; sleep 5; done'", # Wait until AWS CLI is available
       "aws --version",                                                                                 # Display the AWS CLI version to confirm installation
@@ -270,7 +271,7 @@ resource "null_resource" "install-k8s-worker" {
 #------------------------------------------------------------------------
 resource "null_resource" "fetch_worker_join_command" {
   depends_on = [null_resource.fetch_join_command, null_resource.prepare_join_script] # Ensure the join command is fetched from the master node to local machine before executing this resource
-  count      = var.worker_count
+  count      = length(aws_instance.k8s-worker)
 
   connection {
     type        = "ssh"

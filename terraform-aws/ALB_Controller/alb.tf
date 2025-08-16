@@ -109,7 +109,7 @@ resource "aws_lb_listener" "k8s_alb_listener" {
   }
   tags = {
     Name = "k8s-alb-listener"
-  } 
+  }
 }
 
 # create a listener rule for the sockshop target group
@@ -129,11 +129,11 @@ resource "aws_lb_listener_rule" "sockshop_alb_listener_rule" {
   }
   tags = {
     Name = "sockshop-alb-listener-rule"
+  }
 }
-}
- 
-    
-  
+
+
+
 
 
 # create a listener rule for the prometheus target group
@@ -148,7 +148,7 @@ resource "aws_lb_listener_rule" "prometheus_alb_listener_rule" {
 
   condition {
     path_pattern {
-      values = ["/prometheus/*"] # Forward requests to the prometheus target group
+      values = ["prometheus/*"] # Forward requests to the prometheus target group
     }
   }
   tags = {
@@ -168,7 +168,7 @@ resource "aws_lb_listener_rule" "grafana_alb_listener_rule" {
 
   condition {
     path_pattern {
-      values = ["/grafana/*"] # Forward requests to the grafana target group
+      values = ["/grafana", "/grafana/*"]
     }
   }
   tags = {
@@ -197,33 +197,33 @@ resource "aws_lb_listener_rule" "kubecost_alb_listener_rule" {
 
 # Attach worker instances to the sockshop ALB target group
 resource "aws_lb_target_group_attachment" "sockshop_alb_target_group_attachment" {
-  depends_on       = [
-    aws_lb_target_group.sockshop_alb_target_group] # Ensure worker instances are created before attaching
+  depends_on = [
+  aws_lb_target_group.sockshop_alb_target_group] # Ensure worker instances are created before attaching
   target_group_arn = aws_lb_target_group.sockshop_alb_target_group.arn
-  count            = length(var.k8s_worker_instances)         # Attach all worker instances to the target group
+  count            = length(var.k8s_worker_instances)      # Attach all worker instances to the target group
   target_id        = var.k8s_worker_instances[count.index] # Attach the worker instance to the target group
-  port             = 1050                                    # Port on which the instance is listening
+  port             = 1050                                  # Port on which the instance is listening
 }
 
 # Attach worker instances to the prometheus ALB target group
 resource "aws_lb_target_group_attachment" "prometheus_alb_target_group_attachment" {
-  depends_on       = [
-    aws_lb_target_group.prometheus_alb_target_group] # Ensure worker instances are created before attaching
+  depends_on = [
+  aws_lb_target_group.prometheus_alb_target_group] # Ensure worker instances are created before attaching
   target_group_arn = aws_lb_target_group.prometheus_alb_target_group.arn
-  count            = length(var.k8s_worker_instances)         # Attach all worker instances to the target group
+  count            = length(var.k8s_worker_instances)      # Attach all worker instances to the target group
   target_id        = var.k8s_worker_instances[count.index] # Attach the worker instance to the target group
-  port             = 1030                                    # Port on which the instance is listening
+  port             = 1030                                  # Port on which the instance is listening
 }
 
 
 # Attach worker instances to the grafana ALB target group
 resource "aws_lb_target_group_attachment" "grafana_alb_target_group_attachment" {
-  depends_on       = [
-    aws_lb_target_group.grafana_alb_target_group] # Ensure worker instances are created before attaching
+  depends_on = [
+  aws_lb_target_group.grafana_alb_target_group] # Ensure worker instances are created before attaching
   target_group_arn = aws_lb_target_group.grafana_alb_target_group.arn
-  count            = length(var.k8s_worker_instances)         # Attach all worker instances to the target group
+  count            = length(var.k8s_worker_instances)      # Attach all worker instances to the target group
   target_id        = var.k8s_worker_instances[count.index] # Attach the worker instance to the target group
-  port             = 1031                                    # Port on which the instance is listening
+  port             = 1031                                  # Port on which the instance is listening
 }
 
 # Attach worker instances to the kubecost ALB target group

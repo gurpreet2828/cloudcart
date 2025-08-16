@@ -34,7 +34,7 @@ variable "k8s_worker_instance_iam_profile" {
 variable "k8s_worker_asg_vpc_id" {
   description = "VPC ID where the Kubernetes worker ASG will be created"
   type        = string
-  
+
 }
 
 variable "sockshop_alb_target_group_arn" {

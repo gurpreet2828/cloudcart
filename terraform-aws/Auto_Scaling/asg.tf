@@ -1,5 +1,5 @@
 resource "aws_autoscaling_group" "k8s_worker_asg" {
-depends_on = [var.k8s_master_dependency]
+  depends_on  = [var.k8s_master_dependency]
   name_prefix = "k8s-worker-asg"
   launch_template {
     id      = aws_launch_template.k8s_worker_launch_template.id
@@ -17,9 +17,9 @@ depends_on = [var.k8s_master_dependency]
   health_check_type         = "ELB" # Use ELB health checks for the ASG
   health_check_grace_period = 300   # Grace period for health checks
 
-  min_size         = 1    # Minimum number of instances in the ASG
-  max_size         = 10   # Maximum number of instances in the ASG
-  desired_capacity = 2    # Desired number of instances in the ASG
+  min_size         = 3    # Minimum number of instances in the ASG
+  max_size         = 3    # Maximum number of instances in the ASG
+  desired_capacity = 3    # Desired number of instances in the ASG
   force_delete     = true # Force delete the ASG when destroyed
 
 
